@@ -5,23 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Studio PASTI - Prima Automasi Sistem Teknologi Informasi</title>
-    <meta name="title" content="Studio PASTI - Prima Automasi Sistem Teknologi Informasi">
-    <meta name="description" content="Kami membantu akselerasi digitalisasi instansi publik, pemerintahan desa, dan ekosistem pendidikan melalui solusi web sistem terintegrasi yang akurat dan andal.">
+    <title><?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?></title>
+    <meta name="title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
+    <meta name="description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
 
     <link rel="icon" type="image/png" href="<?= base_url('PASTI - Icon.png') ?>">
     <link rel="apple-touch-icon" href="<?= base_url('PASTI - Icon.png') ?>">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?= base_url() ?>">
-    <meta property="og:title" content="Studio PASTI - Prima Automasi Sistem Teknologi Informasi">
-    <meta property="og:description" content="Katalog sistem dan aplikasi demo Studio PASTI. Akselerasi digitalisasi instansi publik, pemerintahan desa, dan ekosistem pendidikan.">
+    <meta property="og:title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
+    <meta property="og:description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
     <meta property="og:image" content="<?= base_url('PASTI - Icon.png') ?>">
 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?= base_url() ?>">
-    <meta property="twitter:title" content="Studio PASTI - Prima Automasi Sistem Teknologi Informasi">
-    <meta property="twitter:description" content="Katalog sistem dan aplikasi demo Studio PASTI. Akselerasi digitalisasi instansi publik, pemerintahan desa, dan ekosistem pendidikan.">
+    <meta property="twitter:title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
+    <meta property="twitter:description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
     <meta property="twitter:image" content="<?= base_url('PASTI - Icon.png') ?>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,12 +35,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* Mengganti font bawaan Tailwind menjadi Ubuntu */
         body {
             font-family: 'Ubuntu', sans-serif !important;
         }
 
-        /* Kustomisasi SweetAlert2 agar berukuran kecil dan nyaman di Mobile */
+        /* Ukuran SweetAlert2 Minimalis Khusus Mobile */
         .swal2-popup {
             font-size: 0.85rem !important;
             width: 20rem !important;
@@ -66,7 +65,6 @@
             font-size: 0.85rem !important;
         }
 
-        /* Efek Futuristik Glow saat Hover kartu */
         .glow-card:hover {
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
             border-color: #3b82f6;
@@ -81,9 +79,9 @@
     <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-2">
             <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Logo PASTI" class="w-8 h-8 rounded-lg shadow-[0_0_10px_rgba(37,99,235,0.5)] object-cover">
-            <span class="font-bold text-lg tracking-wider text-white">PASTI</span>
+            <span class="font-bold text-lg tracking-wider text-white"><?= esc($settings['nama_web']) ?></span>
         </div>
-        <a href="https://wa.me/6285708098155" class="bg-blue-600 hover:bg-blue-500 text-xs text-white px-4 py-2 rounded-full font-semibold transition">
+        <a href="https://wa.me/<?= $settings['nomor_wa'] ?>" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-xs text-white px-4 py-2 rounded-full font-semibold transition">
             <i class="fa-brands fa-whatsapp mr-1"></i> Kontak Konsultasi
         </a>
     </nav>
@@ -91,10 +89,10 @@
     <header class="max-w-5xl mx-auto px-6 py-16 text-center">
         <span class="text-xs font-bold uppercase tracking-widest text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full bg-blue-500/10">Studio Pusat & Automasi</span>
         <h1 class="text-3xl md:text-5xl font-extrabold mt-6 text-white leading-tight">
-            Prima Automasi Sistem <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Teknologi Informasi</span>
+            <?= esc($settings['teks_hero_judul']) ?>
         </h1>
         <p class="mt-4 text-slate-400 text-sm md:text-base max-w-2xl mx-auto">
-            Kami membantu akselerasi digitalisasi instansi publik, pemerintahan desa, dan ekosistem pendidikan melalui solusi web sistem terintegrasi yang akurat dan andal.
+            <?= esc($settings['teks_hero_deskripsi']) ?>
         </p>
     </header>
 
@@ -109,46 +107,52 @@
                     <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-6 flex flex-col justify-between transition-all duration-300 glow-card">
                         <div>
                             <div class="w-10 h-10 rounded-lg bg-slate-700/50 text-blue-400 flex items-center justify-center mb-4 text-lg border border-slate-600/40">
-                                <i class="fa <?= $app['icon'] ?>"></i>
+                                <i class="fa <?= esc($app['ikon']) ?>"></i>
                             </div>
-                            <h3 class="text-lg font-bold text-white m-0"><?= $app['title'] ?></h3>
-                            <p class="text-slate-400 text-xs mt-2 mb-6 text-left"><?= $app['description'] ?></p>
+                            <h3 class="text-lg font-bold text-white m-0"><?= esc($app['judul']) ?></h3>
+                            <p class="text-slate-400 text-xs mt-2 mb-6 text-left"><?= esc($app['deskripsi']) ?></p>
                         </div>
                         <div class="flex gap-3 pt-2">
-                            <a href="<?= $app['github'] ?>" target="_blank" class="flex-1 bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50 text-center text-xs text-slate-200 py-2.5 rounded-lg font-medium transition">
+                            <a href="<?= esc($app['link_github']) ?>" target="_blank" class="flex-1 bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50 text-center text-xs text-slate-200 py-2.5 rounded-lg font-medium transition">
                                 <i class="fa-brands fa-github mr-1"></i> GitHub
                             </a>
-                            <button onclick="launchDemo('<?= $app['title'] ?>', '<?= $app['demo_status'] ?>')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-center text-xs py-2.5 rounded-lg font-medium transition cursor-pointer shadow-[0_2px_8px_rgba(37,99,235,0.3)]">
+                            <button onclick="launchDemo('<?= esc($app['judul']) ?>', '<?= $app['status_demo'] ?>', '<?= esc($app['link_demo']) ?>')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-center text-xs py-2.5 rounded-lg font-medium transition cursor-pointer shadow-[0_2px_8px_rgba(37,99,235,0.3)]">
                                 <i class="fa-solid fa-laptop-code mr-1"></i> Uji Demo
                             </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-span-1 md:col-span-2 text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl">
+                    <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-600"></i>
+                    Belum ada aplikasi demo yang dipublikasikan.
+                </div>
             <?php endif; ?>
         </div>
     </main>
 
     <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500">
-        <p class="text-center m-0">&copy; 2026 Studio PASTI (studio-pasti.net). All Rights Reserved.</p>
+        <p class="text-center m-0"><?= esc($settings['teks_footer']) ?></p>
     </footer>
 
     <script>
-        function launchDemo(appName, status) {
+        function launchDemo(appName, status, urlDemo) {
             if (status === 'ready') {
                 Swal.fire({
                     title: 'Akses Demo Terbuka',
-                    text: 'Membuka aplikasi demo untuk ' + appName + '. Pastikan pop-up browser aktif.',
+                    text: 'Membuka sistem aplikasi demo ' + appName + '. Pastikan pop-up browser Anda aktif.',
                     icon: 'success',
                     confirmButtonText: 'Lanjutkan'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.open('https://berputar.opendesa.id', '_blank');
+                        // Membuka URL demo unik yang ditarik dari database
+                        window.open(urlDemo, '_blank');
                     }
                 });
             } else {
                 Swal.fire({
                     title: 'Sistem Pemeliharaan',
-                    text: 'Aplikasi demo untuk ' + appName + ' saat ini sedang dalam proses deployment server. Hubungi untuk info pemasangan langsung.',
+                    text: 'Aplikasi demo untuk ' + appName + ' saat ini sedang dalam proses deployment server. Hubungi kami untuk info lebih lanjut.',
                     icon: 'info',
                     confirmButtonText: 'Dimengerti'
                 });

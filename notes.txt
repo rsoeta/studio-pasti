@@ -1,0 +1,51 @@
+#=======================================================================================================================================================================================================
+# 1. Tabel portfolios (Menggantikan Data Array)
+#=======================================================================================================================================================================================================
+Tabel ini berfungsi untuk menyimpan seluruh data aplikasi, status demo, dan tautan GitHub yang sebelumnya kita tulis manual di dalam Home.php.
+
+CREATE TABLE `portfolios` (
+`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+`judul` VARCHAR(150) NOT NULL,
+`deskripsi` TEXT NOT NULL,
+`link_github` VARCHAR(255) DEFAULT '#',
+`link_demo` VARCHAR(255) DEFAULT '#',
+`status_demo` ENUM('ready', 'maintenance') DEFAULT 'maintenance',
+`ikon` VARCHAR(50) DEFAULT 'fa-laptop-code' COMMENT 'Class ikon FontAwesome',
+`is_active` TINYINT(1) DEFAULT 1 COMMENT '1 = Tampil, 0 = Sembunyikan',
+`urutan` INT(3) DEFAULT 0 COMMENT 'Untuk mengatur posisi tampil',
+`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+`updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+#=======================================================================================================================================================================================================
+# 2. Tabel admin_users (Untuk Keamanan Login)
+#=======================================================================================================================================================================================================
+Tabel ini menyimpan data akun Kang Rian untuk masuk ke Panel Admin (Dasbor) nantinya. Sandi (password) wajib dienkripsi (menggunakan password_hash bawaan PHP) demi keamanan standar instansi.
+
+CREATE TABLE `admin_users` (
+`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+`nama_lengkap` VARCHAR(100) NOT NULL,
+`username` VARCHAR(50) NOT NULL UNIQUE,
+`email` VARCHAR(100) NOT NULL UNIQUE,
+`password_hash` VARCHAR(255) NOT NULL,
+`last_login` DATETIME DEFAULT NULL,
+`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+#=======================================================================================================================================================================================================
+# 3. Tabel web_settings (Pengaturan Dinamis)
+#=======================================================================================================================================================================================================
+Ini adalah "rahasia dapur" agensi profesional. Tabel ini memungkinkan Anda mengubah nomor WhatsApp, deskripsi header, dan nama agensi dari Panel Admin tanpa menyentuh file landing_page.php sama sekali.
+
+CREATE TABLE `web_settings` (
+`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+`nama_web` VARCHAR(100) NOT NULL,
+`nomor_wa` VARCHAR(20) NOT NULL,
+`teks_hero_judul` VARCHAR(255) NOT NULL,
+`teks_hero_deskripsi` TEXT NOT NULL,
+`teks_footer` VARCHAR(255) NOT NULL,
+`updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
