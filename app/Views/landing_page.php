@@ -131,8 +131,14 @@
         </div>
     </main>
 
-    <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500">
-        <p class="text-center m-0"><?= esc($settings['teks_footer']) ?></p>
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 px-6 flex flex-col items-center justify-center gap-4 text-xs text-slate-500 relative">
+        <p class="text-center m-0 z-10"><?= esc($settings['teks_footer']) ?></p>
+
+        <a href="<?= base_url('auth/login') ?>" class="z-10 inline-flex items-center gap-1.5 text-slate-700 hover:text-blue-500 transition-colors duration-300" title="Akses Ruang Kendali">
+            <i class="fa-solid fa-shield-halved text-[10px]"></i> <span class="font-medium tracking-wide">Otoritas</span>
+        </a>
+
+        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1 bg-blue-600/20 blur-md rounded-t-full"></div>
     </footer>
 
     <script>
