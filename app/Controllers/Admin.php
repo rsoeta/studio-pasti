@@ -57,18 +57,75 @@ class Admin extends BaseController
     public function portfolioStore()
     {
         $this->checkAuth();
+
+        // Logika Upload Gambar
+        $fileLogo = $this->request->getFile('logo');
+        $namaLogo = 'default.png';
+        if ($fileLogo && $fileLogo->isValid() && !$fileLogo->hasMoved()) {
+            $namaLogo = $fileLogo->getRandomName(); // Menghasilkan nama acak aman
+            $fileLogo->move('uploads/portfolios', $namaLogo);
+        }
+
         $this->portfolioModel->save([
             'judul'       => $this->request->getPost('judul'),
-            'deskripsi'   => $this->request->getPost('deskripsi'),
+            'deskripsi'   => $this->request->getPost('deskripsi'), // Menyimpan format HTML dari Editor
             'link_github' => $this->request->getPost('link_github') ?: '#',
             'link_demo'   => $this->request->getPost('link_demo') ?: '#',
             'status_demo' => $this->request->getPost('status_demo'),
-            'ikon'        => $this->request->getPost('ikon') ?: 'fa-laptop-code',
+            'logo'        => $namaLogo,
             'urutan'      => $this->request->getPost('urutan') ?: 0,
             'is_active'   => 1
         ]);
 
         return redirect()->to('/admin/portfolio')->with('success', 'Portofolio baru berhasil ditambahkan.');
+    }
+
+    // Update Data
+    public function portfolioUpdate($id)
+    {
+        $this->checkAuth();
+        $portfolio = $this->portfolioModel->find($id);
+
+        // Logika Update Gambar
+        $fileLogo = $this->request->getFile('logo');
+        $namaLogo = $portfolio['logo']; // Gunakan logo lama sebagai default
+
+        if ($fileLogo && $fileLogo->isValid() && !$fileLogo->hasMoved()) {
+            // Hapus logo lama dari server jika bukan default.png
+            if ($namaLogo != 'default.png' && file_exists('uploads/portfolios/' . $namaLogo)) {
+                unlink('uploads/portfolios/' . $namaLogo);
+            }
+            $namaLogo = $fileLogo->getRandomName();
+            $fileLogo->move('uploads/portfolios', $namaLogo);
+        }
+
+        $this->portfolioModel->update($id, [
+            'judul'       => $this->request->getPost('judul'),
+            'deskripsi'   => $this->request->getPost('deskripsi'),
+            'link_github' => $this->request->getPost('link_github') ?: '#',
+            'link_demo'   => $this->request->getPost('link_demo') ?: '#',
+            'status_demo' => $this->request->getPost('status_demo'),
+            'logo'        => $namaLogo,
+            'urutan'      => $this->request->getPost('urutan') ?: 0
+        ]);
+
+        return redirect()->to('/admin/portfolio')->with('success', 'Perubahan portofolio berhasil disimpan.');
+    }
+
+    // Hapus Portofolio
+    public function portfolioDelete($id)
+    {
+        $this->checkAuth();
+        $portfolio = $this->portfolioModel->find($id);
+        if ($portfolio) {
+            // Bersihkan file gambar dari server
+            if ($portfolio['logo'] != 'default.png' && file_exists('uploads/portfolios/' . $portfolio['logo'])) {
+                unlink('uploads/portfolios/' . $portfolio['logo']);
+            }
+            $this->portfolioModel->delete($id);
+            return redirect()->to('/admin/portfolio')->with('success', 'Portofolio berhasil dihapus dari sistem.');
+        }
+        return redirect()->to('/admin/portfolio')->with('error', 'Gagal menghapus data.');
     }
 
     // Form Edit
@@ -87,23 +144,6 @@ class Admin extends BaseController
         return view('admin/portfolio/edit', $data);
     }
 
-    // Update Data
-    public function portfolioUpdate($id)
-    {
-        $this->checkAuth();
-        $this->portfolioModel->update($id, [
-            'judul'       => $this->request->getPost('judul'),
-            'deskripsi'   => $this->request->getPost('deskripsi'),
-            'link_github' => $this->request->getPost('link_github') ?: '#',
-            'link_demo'   => $this->request->getPost('link_demo') ?: '#',
-            'status_demo' => $this->request->getPost('status_demo'),
-            'ikon'        => $this->request->getPost('ikon') ?: 'fa-laptop-code',
-            'urutan'      => $this->request->getPost('urutan') ?: 0
-        ]);
-
-        return redirect()->to('/admin/portfolio')->with('success', 'Perubahan portofolio berhasil disimpan.');
-    }
-
     // Sembunyikan / Tampilkan Portofolio (Toggle)
     public function portfolioToggle($id)
     {
@@ -115,17 +155,6 @@ class Admin extends BaseController
             return redirect()->to('/admin/portfolio')->with('success', 'Status visibilitas portofolio berhasil diubah.');
         }
         return redirect()->to('/admin/portfolio')->with('error', 'Gagal mengubah status.');
-    }
-
-    // Hapus Portofolio
-    public function portfolioDelete($id)
-    {
-        $this->checkAuth();
-        if ($this->portfolioModel->find($id)) {
-            $this->portfolioModel->delete($id);
-            return redirect()->to('/admin/portfolio')->with('success', 'Portofolio berhasil dihapus dari sistem.');
-        }
-        return redirect()->to('/admin/portfolio')->with('error', 'Gagal menghapus data.');
     }
 
     // ================= MANAJEMEN PENGATURAN WEB =================

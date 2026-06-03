@@ -71,6 +71,31 @@
             transform: translateY(-4px);
             transition: all 0.3s ease;
         }
+
+        /* Gaya Khusus untuk Rich Text HTML dari Database */
+        .deskripsi-html ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deskripsi-html ol {
+            list-style-type: decimal;
+            padding-left: 1.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .deskripsi-html strong,
+        .deskripsi-html b {
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .deskripsi-html p {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 
@@ -106,11 +131,21 @@
                 <?php foreach ($apps as $app): ?>
                     <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-6 flex flex-col justify-between transition-all duration-300 glow-card">
                         <div>
-                            <div class="w-10 h-10 rounded-lg bg-slate-700/50 text-blue-400 flex items-center justify-center mb-4 text-lg border border-slate-600/40">
-                                <i class="fa <?= esc($app['ikon']) ?>"></i>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-20 h-20 shrink-0 rounded-xl bg-white flex items-center justify-center p-2.5 shadow-lg border border-slate-600/40">
+                                    <img src="<?= base_url('uploads/portfolios/' . esc($app['logo'])) ?>" alt="Logo <?= esc($app['judul']) ?>" class="w-full h-full object-contain rounded-lg">
+                                </div>
+
+                                <h3 class="text-xl font-bold text-white leading-tight m-0"><?= esc($app['judul']) ?></h3>
                             </div>
-                            <h3 class="text-lg font-bold text-white m-0"><?= esc($app['judul']) ?></h3>
-                            <p class="text-slate-400 text-xs mt-2 mb-6 text-left"><?= esc($app['deskripsi']) ?></p>
+
+                            <div id="desc-<?= $app['id'] ?>" class="deskripsi-html text-slate-400 text-sm mt-3 text-left leading-relaxed line-clamp-3 transition-all duration-300">
+                                <?= $app['deskripsi'] ?>
+                            </div>
+
+                            <button onclick="toggleDeskripsi('<?= $app['id'] ?>')" id="btn-desc-<?= $app['id'] ?>" class="text-blue-500 hover:text-blue-400 text-xs font-bold mt-2 mb-6 flex items-center transition-colors cursor-pointer w-fit">
+                                Selengkapnya <i class="fa-solid fa-chevron-down ml-1.5 text-[10px]"></i>
+                            </button>
                         </div>
                         <div class="flex gap-3 pt-2">
                             <a href="<?= esc($app['link_github']) ?>" target="_blank" class="flex-1 bg-slate-700/60 hover:bg-slate-700 border border-slate-600/50 text-center text-xs text-slate-200 py-2.5 rounded-lg font-medium transition">
@@ -162,6 +197,22 @@
                     icon: 'info',
                     confirmButtonText: 'Dimengerti'
                 });
+            }
+        }
+
+        // Fungsi untuk membuka/menutup deskripsi panjang
+        function toggleDeskripsi(id) {
+            const descElement = document.getElementById('desc-' + id);
+            const btnElement = document.getElementById('btn-desc-' + id);
+
+            // Jika teks sedang terpotong (memiliki class line-clamp-3)
+            if (descElement.classList.contains('line-clamp-3')) {
+                descElement.classList.remove('line-clamp-3'); // Buka teks sepenuhnya
+                btnElement.innerHTML = 'Tutup Deskripsi <i class="fa-solid fa-chevron-up ml-1.5 text-[10px]"></i>';
+            } else {
+                // Jika teks sedang terbuka, potong kembali menjadi 3 baris
+                descElement.classList.add('line-clamp-3');
+                btnElement.innerHTML = 'Selengkapnya <i class="fa-solid fa-chevron-down ml-1.5 text-[10px]"></i>';
             }
         }
     </script>

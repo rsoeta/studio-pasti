@@ -33,14 +33,21 @@
 
                             <td class="block md:table-cell md:p-4 md:text-center border-b border-slate-100 md:border-none pb-3 md:pb-0 mb-3 md:mb-0">
                                 <div class="flex items-center gap-3 md:justify-center">
-                                    <div class="w-10 h-10 md:w-8 md:h-8 shrink-0 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center border border-blue-100">
-                                        <i class="fa <?= $p['ikon'] ?>"></i>
+
+                                    <div class="w-12 h-12 md:w-10 md:h-10 shrink-0 rounded-lg bg-white flex items-center justify-center border border-slate-200 p-1 shadow-sm overflow-hidden">
+                                        <img src="<?= base_url('uploads/portfolios/' . esc($p['logo'])) ?>" alt="Logo" class="w-full h-full object-contain">
                                     </div>
+
                                     <div class="md:hidden text-left">
-                                        <p class="font-bold text-slate-800 text-base"><?= $p['judul'] ?></p>
-                                        <p class="text-xs text-slate-400 mt-0.5 truncate max-w-[220px]"><?= $p['deskripsi'] ?></p>
+                                        <p class="font-bold text-slate-800 text-base"><?= esc($p['judul']) ?></p>
+                                        <p class="text-xs text-slate-400 mt-0.5 truncate max-w-[220px]"><?= strip_tags($p['deskripsi']) ?></p>
                                     </div>
                                 </div>
+                            </td>
+
+                            <td class="hidden md:table-cell p-4">
+                                <p class="font-bold text-slate-800"><?= esc($p['judul']) ?></p>
+                                <p class="text-xs text-slate-400 mt-0.5 max-w-md truncate"><?= strip_tags($p['deskripsi']) ?></p>
                             </td>
 
                             <td class="hidden md:table-cell p-4">

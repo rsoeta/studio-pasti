@@ -49,3 +49,8 @@ CREATE TABLE `web_settings` (
 `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+#=======================================================================================================================================================================================================
+# 3. Ubah icon fontawesome dengan icon/logo/gambar aplikasi
+#=======================================================================================================================================================================================================
+ALTER TABLE `portfolios` CHANGE `ikon` `logo` VARCHAR(255) NULL DEFAULT 'default.png';
