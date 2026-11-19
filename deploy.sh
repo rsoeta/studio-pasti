@@ -67,14 +67,29 @@ else
 fi
 
 echo "==> [3/6] Menyinkronkan file Studio PASTI ke $TARGET_DIR..."
-mkdir -p "$TARGET_DIR"
+mkdir -p "$TARGET_DIR" "$TARGET_DIR/public"
+
+sync_public_assets() {
+    local dest="$1"
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -a --exclude='uploads/' --exclude='.htaccess' "$REPO_DIR/public/" "$dest/"
+    else
+        for item in "$REPO_DIR/public/"* "$REPO_DIR/public/".[!.]*; do
+            [ -e "$item" ] || continue
+            base="$(basename "$item")"
+            if [ "$base" = "uploads" ] || [ "$base" = ".htaccess" ]; then
+                continue
+            fi
+            cp -rf "$item" "$dest/"
+        done
+    fi
+}
 
 if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete "$REPO_DIR/app/" "$TARGET_DIR/app/"
     if [ -f "$REPO_DIR/vendor/autoload.php" ]; then
         rsync -a --delete "$REPO_DIR/vendor/" "$TARGET_DIR/vendor/"
     fi
-    rsync -a --exclude='uploads/' --exclude='.htaccess' "$REPO_DIR/public/" "$TARGET_DIR/"
 else
     rm -rf "$TARGET_DIR/app"
     cp -a "$REPO_DIR/app" "$TARGET_DIR/app"
@@ -82,15 +97,11 @@ else
         rm -rf "$TARGET_DIR/vendor"
         cp -a "$REPO_DIR/vendor" "$TARGET_DIR/vendor"
     fi
-    for item in "$REPO_DIR/public/"* "$REPO_DIR/public/".[!.]*; do
-        [ -e "$item" ] || continue
-        base="$(basename "$item")"
-        if [ "$base" = "uploads" ] || [ "$base" = ".htaccess" ]; then
-            continue
-        fi
-        cp -rf "$item" "$TARGET_DIR/"
-    done
 fi
+
+# Sinkronkan aset public ke root public_html DAN subfolder public_html/public
+sync_public_assets "$TARGET_DIR"
+sync_public_assets "$TARGET_DIR/public"
 
 for root_file in composer.json composer.lock spark preload.php; do
     if [ -f "$REPO_DIR/$root_file" ]; then
@@ -98,14 +109,18 @@ for root_file in composer.json composer.lock spark preload.php; do
     fi
 done
 
-# Salin .htaccess hanya jika belum ada di public_html agar aturan MultiPHP cPanel tidak tertimpa
+# Salin .htaccess hanya jika belum ada agar aturan MultiPHP / rewrite cPanel tidak tertimpa
 if [ ! -f "$TARGET_DIR/.htaccess" ] && [ -f "$REPO_DIR/public/.htaccess" ]; then
     cp -f "$REPO_DIR/public/.htaccess" "$TARGET_DIR/.htaccess"
+fi
+if [ ! -f "$TARGET_DIR/public/.htaccess" ] && [ -f "$REPO_DIR/public/.htaccess" ]; then
+    cp -f "$REPO_DIR/public/.htaccess" "$TARGET_DIR/public/.htaccess"
 fi
 
 echo "==> [4/6] Memastikan direktori uploads & writable tersedia..."
 mkdir -p \
     "$TARGET_DIR/uploads/portfolios" \
+    "$TARGET_DIR/public/uploads/portfolios" \
     "$TARGET_DIR/writable/cache" \
     "$TARGET_DIR/writable/logs" \
     "$TARGET_DIR/writable/session" \
@@ -115,6 +130,9 @@ mkdir -p \
 if [ ! -f "$TARGET_DIR/uploads/portfolios/default.png" ] && [ -f "$TARGET_DIR/PASTI - Icon.png" ]; then
     cp "$TARGET_DIR/PASTI - Icon.png" "$TARGET_DIR/uploads/portfolios/default.png"
 fi
+if [ ! -f "$TARGET_DIR/public/uploads/portfolios/default.png" ] && [ -f "$TARGET_DIR/public/PASTI - Icon.png" ]; then
+    cp "$TARGET_DIR/public/PASTI - Icon.png" "$TARGET_DIR/public/uploads/portfolios/default.png"
+fi
 
 echo "==> [5/6] Membersihkan cache CodeIgniter 4..."
 if [ -f "$TARGET_DIR/spark" ]; then
@@ -123,6 +141,6 @@ fi
 find "$TARGET_DIR/writable/cache" -mindepth 1 ! -name 'index.html' ! -name '.htaccess' -delete 2>/dev/null || true
 
 echo "==> [6/6] Menyesuaikan hak akses direktori..."
-chmod -R 775 "$TARGET_DIR/writable" "$TARGET_DIR/uploads" || true
+chmod -R 775 "$TARGET_DIR/writable" "$TARGET_DIR/uploads" "$TARGET_DIR/public/uploads" || true
 
 echo "==> Deploy Studio PASTI ke $TARGET_DIR selesai!"
