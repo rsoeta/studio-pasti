@@ -254,7 +254,7 @@ class Admin extends BaseController
             return redirect()->to('/admin/settings')->with('error', 'Nama lengkap dan alamat email Google yang valid wajib diisi.');
         }
 
-        if ($adminModel->where('LOWER(email)', $email)->first()) {
+        if ($adminModel->where('email', $email)->first()) {
             return redirect()->to('/admin/settings')->with('error', 'Email tersebut sudah terdaftar di dalam Whitelist Admin.');
         }
 

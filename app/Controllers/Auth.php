@@ -149,7 +149,7 @@ class Auth extends BaseController
             }
 
             $model = new AdminUserModel();
-            $admin = $model->where('LOWER(email)', strtolower($googleEmail))->first();
+            $admin = $model->where('email', strtolower($googleEmail))->first();
 
             if (!$admin) {
                 return redirect()->to('/auth/login')->with(
