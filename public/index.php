@@ -47,9 +47,11 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  */
 
 // LOAD OUR PATHS CONFIG FILE
-// This is the line that might need to be changed, depending on your folder structure.
-require FCPATH . '../app/Config/Paths.php';
-// ^^^ Change this line if you move your application folder
+// Auto-detect standard public/ layout (../app) or flat cPanel public_html/ layout (app/)
+$pathsConfig = is_file(FCPATH . '../app/Config/Paths.php')
+    ? FCPATH . '../app/Config/Paths.php'
+    : FCPATH . 'app/Config/Paths.php';
+require $pathsConfig;
 
 $paths = new Paths();
 

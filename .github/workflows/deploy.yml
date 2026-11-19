@@ -1,0 +1,52 @@
+name: Deploy Studio PASTI to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate PHP & Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: Check PHP syntax across app/
+        run: find app -type f -name "*.php" -exec php -l {} +
+
+      - name: Validate PWA manifest.json
+        run: php -r 'json_decode(file_get_contents("public/manifest.json"), true, 512, JSON_THROW_ON_ERROR);'
+
+  deploy:
+    name: Deploy via SSH
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest changes and run deploy.sh on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin main
+            git reset --hard origin/main
+            chmod +x deploy.sh
+            ./deploy.sh
