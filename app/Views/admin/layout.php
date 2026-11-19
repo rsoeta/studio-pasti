@@ -7,6 +7,12 @@
     <title><?= esc($title ?? 'Panel Admin - Studio PASTI') ?></title>
 
     <link rel="icon" type="image/png" href="<?= base_url('PASTI - Icon.png') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('icons/icon-192x192.png') ?>">
+    <link rel="manifest" href="<?= base_url('manifest.json') ?>">
+    <meta name="theme-color" content="#24425f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Studio PASTI">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
@@ -1421,6 +1427,14 @@
                 if (result.isConfirmed) {
                     window.location.href = "<?= base_url('auth/logout') ?>";
                 }
+            });
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= base_url('sw.js') ?>').catch((err) => {
+                    console.warn('Service Worker registration failed:', err);
+                });
             });
         }
     </script>

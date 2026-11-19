@@ -10,7 +10,12 @@
     <meta name="description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
 
     <link rel="icon" type="image/png" href="<?= base_url('PASTI - Icon.png') ?>">
-    <link rel="apple-touch-icon" href="<?= base_url('PASTI - Icon.png') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('icons/icon-192x192.png') ?>">
+    <link rel="manifest" href="<?= base_url('manifest.json') ?>">
+    <meta name="theme-color" content="#2f5fe8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<?= esc($settings['nama_web']) ?>">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?= base_url() ?>">
@@ -2403,6 +2408,14 @@
                 descElement.classList.add('line-clamp-3');
                 btnElement.innerHTML = 'Selengkapnya <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>';
             }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= base_url('sw.js') ?>').catch((err) => {
+                    console.warn('Service Worker registration failed:', err);
+                });
+            });
         }
     </script>
 </body>

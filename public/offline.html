@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2f5fe8">
+  <title>Offline — Studio PASTI</title>
+  <style>
+    :root {
+      --bg-night: #0b1226;
+      --bg-card: #f4f7fd;
+      --cobalt: #2f5fe8;
+      --cobalt-deep: #1f45c4;
+      --sky: #8fb2f7;
+      --ink: #0f1a33;
+      --mute: #4a5878;
+      --ok: #1d7a55;
+      --warn: #b45309;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Ubuntu', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(143, 178, 247, 0.24), transparent 55%),
+        linear-gradient(160deg, #16203d 0%, var(--bg-night) 100%);
+      color: #f7f9fe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .card {
+      width: min(460px, 100%);
+      background-color: var(--bg-card);
+      color: var(--ink);
+      border-radius: 22px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.85) inset,
+        0 28px 64px rgba(5, 12, 26, 0.55);
+    }
+
+    .orb {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 30% 28%,
+        #ffffff 0%,
+        #f4f7fd 20%,
+        #8fb2f7 48%,
+        #2f5fe8 78%,
+        #0b1226 100%
+      );
+      box-shadow:
+        inset -4px -6px 12px rgba(11, 18, 38, 0.45),
+        inset 3px 3px 8px rgba(255, 255, 255, 0.9),
+        0 14px 26px rgba(15, 26, 51, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .orb svg {
+      width: 30px;
+      height: 30px;
+      stroke: var(--bg-night);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background-color: rgba(180, 83, 9, 0.12);
+      color: var(--warn);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .status-pill.is-online {
+      background-color: rgba(29, 122, 85, 0.14);
+      color: var(--ok);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: var(--ink);
+    }
+
+    p {
+      margin: 12px 0 0;
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--mute);
+    }
+
+    .actions {
+      margin-top: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-reload {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: 0;
+      background-color: var(--cobalt);
+      color: #f7f9fe;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(47, 95, 232, 0.28);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn-reload:hover {
+      background-color: var(--cobalt-deep);
+      transform: translateY(-1px);
+    }
+
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 69, 196, 0.24);
+      background-color: #e9f0fc;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 700;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-home:hover {
+      background-color: #d9e4f8;
+    }
+
+    .brand-foot {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(31, 69, 196, 0.14);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--mute);
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <div class="orb" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="2" y1="2" x2="22" y2="22"></line>
+        <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+        <path d="M2 8.82a15 15 0 0 1 4.17-2.65"></path>
+        <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"></path>
+        <path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"></path>
+        <path d="M5 13a10 10 0 0 1 5.24-2.76"></path>
+        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+      </svg>
+    </div>
+
+    <div class="status-pill" id="conn-pill" role="status" aria-live="polite">
+      <span class="dot"></span>
+      <span id="conn-text">Offline Mode</span>
+    </div>
+
+    <h1>Koneksi Internet Terputus</h1>
+    <p>
+      Anda sedang berada dalam mode offline dan halaman ini belum tersimpan di cache perangkat Anda. Periksa koneksi jaringan Anda lalu muat ulang halaman.
+    </p>
+
+    <div class="actions">
+      <button type="button" class="btn-reload" onclick="window.location.reload()">
+        Muat Ulang Halaman
+      </button>
+      <a href="/" class="btn-home">Ke Beranda</a>
+    </div>
+
+    <div class="brand-foot">
+      Studio PASTI &bull; Progressive Web App
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const pill = document.getElementById('conn-pill');
+      const text = document.getElementById('conn-text');
+
+      function updateStatus() {
+        if (navigator.onLine) {
+          pill.classList.add('is-online');
+          text.textContent = 'Koneksi Tersambung — Memuat ulang...';
+          setTimeout(function () {
+            window.location.reload();
+          }, 800);
+        } else {
+          pill.classList.remove('is-online');
+          text.textContent = 'Offline Mode';
+        }
+      }
+
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+    })();
+  </script>
+</body>
+</html>
