@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="/opt/cpanel/composer/bin:/usr/local/bin:/usr/bin:${HOME:-/home/stuw8183}/bin:$PATH"
+
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="${PUBLIC_HTML_DIR:-/home/stuw8183/public_html}"
 
@@ -24,30 +26,62 @@ EOF
 fi
 
 echo "==> [2/6] Memasang dependensi Composer produksi..."
+PHP_BIN="php"
+for candidate_php in /opt/cpanel/ea-php83/root/usr/bin/php /opt/cpanel/ea-php82/root/usr/bin/php /usr/local/bin/php "$(command -v php || true)"; do
+    if [ -n "$candidate_php" ] && [ -x "$candidate_php" ]; then
+        PHP_BIN="$candidate_php"
+        break
+    fi
+done
+
+COMPOSER_CMD=()
 if command -v composer >/dev/null 2>&1; then
-    COMPOSER_BIN="composer"
+    COMPOSER_CMD=("$(command -v composer)")
+elif [ -x /opt/cpanel/composer/bin/composer ]; then
+    COMPOSER_CMD=("/opt/cpanel/composer/bin/composer")
 elif [ -x /usr/local/bin/composer ]; then
-    COMPOSER_BIN="/usr/local/bin/composer"
+    COMPOSER_CMD=("/usr/local/bin/composer")
+elif [ -x /usr/bin/composer ]; then
+    COMPOSER_CMD=("/usr/bin/composer")
+elif [ -f "${HOME:-/home/stuw8183}/composer.phar" ]; then
+    COMPOSER_CMD=("$PHP_BIN" "${HOME:-/home/stuw8183}/composer.phar")
 elif [ -f "$REPO_DIR/composer.phar" ]; then
-    COMPOSER_BIN="php $REPO_DIR/composer.phar"
-else
-    echo "ERROR: Composer tidak ditemukan di server." >&2
-    exit 1
+    COMPOSER_CMD=("$PHP_BIN" "$REPO_DIR/composer.phar")
 fi
 
-$COMPOSER_BIN install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+if [ ${#COMPOSER_CMD[@]} -gt 0 ]; then
+    "${COMPOSER_CMD[@]}" install --no-dev --prefer-dist --no-interaction --optimize-autoloader || true
+elif [ ! -f "$TARGET_DIR/vendor/autoload.php" ]; then
+    echo "INFO: Composer tidak ditemukan, mengunduh composer.phar..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -sS https://getcomposer.org/installer | "$PHP_BIN" -- --install-dir="$REPO_DIR" --filename=composer.phar || true
+    fi
+    if [ -f "$REPO_DIR/composer.phar" ]; then
+        "$PHP_BIN" "$REPO_DIR/composer.phar" install --no-dev --prefer-dist --no-interaction --optimize-autoloader || true
+    else
+        echo "ERROR: Composer tidak tersedia dan $TARGET_DIR/vendor/autoload.php tidak ditemukan." >&2
+        exit 1
+    fi
+else
+    echo "INFO: Mempertahankan folder vendor/ yang sudah ada di $TARGET_DIR/vendor"
+fi
 
 echo "==> [3/6] Menyinkronkan file Studio PASTI ke $TARGET_DIR..."
 mkdir -p "$TARGET_DIR"
 
 if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete "$REPO_DIR/app/" "$TARGET_DIR/app/"
-    rsync -a --delete "$REPO_DIR/vendor/" "$TARGET_DIR/vendor/"
+    if [ -f "$REPO_DIR/vendor/autoload.php" ]; then
+        rsync -a --delete "$REPO_DIR/vendor/" "$TARGET_DIR/vendor/"
+    fi
     rsync -a --exclude='uploads/' --exclude='.htaccess' "$REPO_DIR/public/" "$TARGET_DIR/"
 else
-    rm -rf "$TARGET_DIR/app" "$TARGET_DIR/vendor"
+    rm -rf "$TARGET_DIR/app"
     cp -a "$REPO_DIR/app" "$TARGET_DIR/app"
-    cp -a "$REPO_DIR/vendor" "$TARGET_DIR/vendor"
+    if [ -f "$REPO_DIR/vendor/autoload.php" ]; then
+        rm -rf "$TARGET_DIR/vendor"
+        cp -a "$REPO_DIR/vendor" "$TARGET_DIR/vendor"
+    fi
     for item in "$REPO_DIR/public/"* "$REPO_DIR/public/".[!.]*; do
         [ -e "$item" ] || continue
         base="$(basename "$item")"
@@ -84,7 +118,7 @@ fi
 
 echo "==> [5/6] Membersihkan cache CodeIgniter 4..."
 if [ -f "$TARGET_DIR/spark" ]; then
-    (cd "$TARGET_DIR" && php spark cache:clear) || true
+    (cd "$TARGET_DIR" && "$PHP_BIN" spark cache:clear) || true
 fi
 find "$TARGET_DIR/writable/cache" -mindepth 1 ! -name 'index.html' ! -name '.htaccess' -delete 2>/dev/null || true
 
