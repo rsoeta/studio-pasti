@@ -22,6 +22,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <?php $security = $security ?? []; ?>
     <?php if (!empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key'])) : ?>
+        <script>
+            window.onTurnstileError = function (code) {
+                var hint = document.getElementById('turnstile-error-hint');
+                if (hint) {
+                    hint.hidden = false;
+                    hint.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Widget Turnstile gagal dimuat (kode ' + code + '). Pastikan hostname <strong>' + window.location.hostname + '</strong> sudah ditambahkan di Cloudflare Turnstile &rarr; Hostname Management.';
+                }
+                return true;
+            };
+        </script>
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <?php endif; ?>
 
@@ -504,8 +514,13 @@
 
                 <?php if (!empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key'])) : ?>
                     <div class="turnstile-wrap">
-                        <div class="cf-turnstile" data-sitekey="<?= esc($security['turnstile_site_key']) ?>" data-theme="auto"></div>
+                        <div
+                            class="cf-turnstile"
+                            data-sitekey="<?= esc($security['turnstile_site_key']) ?>"
+                            data-theme="auto"
+                            data-error-callback="onTurnstileError"></div>
                     </div>
+                    <p id="turnstile-error-hint" hidden style="margin:0;padding:8px 12px;border-radius:8px;background:var(--peach);color:var(--peach-ink);font-size:11.5px;line-height:1.45;"></p>
                 <?php endif; ?>
 
                 <button type="submit" class="btn-submit">
@@ -564,8 +579,20 @@
             }
         })();
 
+        function showLoginSwal(options) {
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            options.willOpen = function () {
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
+            };
+            Swal.fire(options);
+        }
+
         <?php if (session()->getFlashdata('error')) : ?>
-            Swal.fire({
+            showLoginSwal({
                 title: 'Akses Ditolak',
                 text: '<?= esc(session()->getFlashdata('error'), 'js') ?>',
                 icon: 'error',
@@ -574,7 +601,7 @@
         <?php endif; ?>
 
         <?php if (session()->getFlashdata('success')) : ?>
-            Swal.fire({
+            showLoginSwal({
                 title: 'Berhasil',
                 text: '<?= esc(session()->getFlashdata('success'), 'js') ?>',
                 icon: 'success',

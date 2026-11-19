@@ -30,8 +30,15 @@ class Auth extends BaseController
         }
 
         if (SecurityConfig::isTurnstileEnabled()) {
-            $token = (string) $this->request->getPost('cf-turnstile-response');
-            if ($token === '' || !$this->verifyTurnstile($token)) {
+            $token      = (string) $this->request->getPost('cf-turnstile-response');
+            $host       = strtolower((string) $this->request->getUri()->getHost());
+            $isLocalDev = ENVIRONMENT === 'development' && in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+
+            if ($token !== '') {
+                if (!$this->verifyTurnstile($token) && !$isLocalDev) {
+                    return redirect()->back()->withInput()->with('error', 'Verifikasi anti-bot Cloudflare Turnstile gagal atau kedaluwarsa.');
+                }
+            } elseif (!$isLocalDev) {
                 return redirect()->back()->withInput()->with('error', 'Verifikasi anti-bot Cloudflare Turnstile gagal atau kedaluwarsa.');
             }
         }
