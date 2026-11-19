@@ -2,68 +2,248 @@
 
 <?= $this->section('content') ?>
 
-<div class="mb-6">
-    <h3 class="text-xl font-bold text-slate-800">Pengaturan Website</h3>
-    <p class="text-slate-500 text-xs mt-0.5">Ubah profil agensi, nomor kontak, dan teks utama untuk Landing Page publik Anda.</p>
+<style>
+    .settings-grid {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .settings-side {
+        display: grid;
+        gap: 14px;
+    }
+
+    .theme-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .theme-opt {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px;
+        border-radius: var(--r-md);
+        border: 1.5px solid var(--line-2);
+        background-color: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        text-align: left;
+        transition: border-color 0.2s ease, transform 0.2s var(--ease);
+    }
+
+    .theme-opt:hover {
+        transform: translateY(-1px);
+        border-color: var(--accent);
+    }
+
+    .theme-opt.is-selected {
+        border-color: var(--accent);
+        background-color: var(--peach);
+        color: var(--peach-ink);
+    }
+
+    .theme-swatch {
+        width: 100%;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        display: flex;
+        overflow: hidden;
+    }
+
+    .settings-form-stack {
+        display: grid;
+        gap: 18px;
+    }
+
+    .settings-row-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .input-icon-wrap {
+        position: relative;
+    }
+
+    .input-icon-wrap i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        pointer-events: none;
+    }
+
+    .input-icon-wrap .orvex-input {
+        padding-left: 40px;
+    }
+
+    @media (max-width: 960px) {
+        .settings-grid,
+        .settings-row-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="phead">
+    <div>
+        <h1 class="phead__title">
+            <span class="phead__mark">Pengaturan Website</span>
+        </h1>
+        <p class="phead__sub">Ubah profil agensi, nomor kontak WhatsApp, dan teks utama untuk Landing Page publik Anda.</p>
+    </div>
+
+    <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" class="orvex-btn">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> Pratinjau Landing Page
+    </a>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 max-w-4xl">
-    <form action="<?= base_url('admin/settings/update') ?>" method="POST" class="space-y-5">
-        <?= csrf_field() ?>
+<div class="settings-grid">
+    <!-- Left Column: Live Summary + Appearance Switcher -->
+    <div class="settings-side">
+        <div class="orvex-card orvex-card--peach orvex-card--sm">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--peach-muted);">
+                Ringkasan Etalase Aktif
+            </div>
+            <h2 style="margin:6px 0 0;font-size:18px;font-weight:700;" id="live-preview-brand">
+                <?= esc($settings['nama_web']) ?>
+            </h2>
+            <p style="margin:8px 0 0;font-size:12.5px;color:var(--peach-muted);line-height:1.5;" id="live-preview-hero">
+                <?= esc($settings['teks_hero_judul']) ?>
+            </p>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(168,74,8,0.16);display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+                <span>WhatsApp Target</span>
+                <strong class="tabular-nums"><?= esc($settings['nomor_wa']) ?></strong>
+            </div>
+        </div>
 
-        <input type="hidden" name="id" value="<?= $settings['id'] ?>">
+        <div class="orvex-card orvex-card--sm">
+            <h2 class="ctitle">Tampilan Ruang Kendali</h2>
+            <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">
+                Pilih mode tema Panel Admin (tersimpan di browser).
+            </p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nama Brand / Agensi</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <div class="theme-cards">
+                <button type="button" class="theme-opt" data-theme-pick="light">
+                    <div class="theme-swatch">
+                        <span style="width:35%;background:#24425f;"></span>
+                        <span style="width:45%;background:#eef3f7;"></span>
+                        <span style="width:20%;background:#f37a1f;"></span>
+                    </div>
+                    <strong style="font-size:12.5px;"><i class="fa-solid fa-sun"></i> Light</strong>
+                </button>
+                <button type="button" class="theme-opt" data-theme-pick="dark">
+                    <div class="theme-swatch">
+                        <span style="width:35%;background:#0d1721;"></span>
+                        <span style="width:45%;background:#172331;"></span>
+                        <span style="width:20%;background:#f7862e;"></span>
+                    </div>
+                    <strong style="font-size:12.5px;"><i class="fa-solid fa-moon"></i> Dark</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Configuration Form -->
+    <div class="orvex-card">
+        <form action="<?= base_url('admin/settings/update') ?>" method="POST" class="settings-form-stack">
+            <?= csrf_field() ?>
+
+            <input type="hidden" name="id" value="<?= $settings['id'] ?>">
+
+            <div class="settings-row-2">
+                <div>
+                    <label for="nama_web" class="field-label">Nama Brand / Agensi</label>
+                    <div class="input-icon-wrap">
                         <i class="fa-solid fa-building"></i>
+                        <input type="text" id="nama_web" name="nama_web" value="<?= esc($settings['nama_web']) ?>" required class="orvex-input">
                     </div>
-                    <input type="text" name="nama_web" value="<?= esc($settings['nama_web']) ?>" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg pl-10 p-2.5 outline-none focus:border-blue-500 focus:bg-white transition">
                 </div>
+
+                <div>
+                    <label for="nomor_wa" class="field-label">Nomor WhatsApp Target</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <input type="number" id="nomor_wa" name="nomor_wa" value="<?= esc($settings['nomor_wa']) ?>" required placeholder="Contoh: 6281234567890" class="orvex-input tabular-nums">
+                    </div>
+                    <p style="font-size:11px;color:var(--muted);margin:6px 0 0;">*Gunakan awalan 62 (tanpa + atau 0) untuk integrasi link wa.me</p>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--line);padding-top:18px;">
+                <label for="teks_hero_judul" class="field-label">Teks Judul Utama (Hero Section)</label>
+                <input type="text" id="teks_hero_judul" name="teks_hero_judul" value="<?= esc($settings['teks_hero_judul']) ?>" required class="orvex-input">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nomor WhatsApp Target</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-brands fa-whatsapp text-lg"></i>
-                    </div>
-                    <input type="number" name="nomor_wa" value="<?= esc($settings['nomor_wa']) ?>" required placeholder="Contoh: 6281234567890" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg pl-10 p-2.5 outline-none focus:border-blue-500 focus:bg-white transition">
-                </div>
-                <p class="text-[10px] text-slate-400 mt-1">*Gunakan awalan 62 (tanpa + atau 0) untuk integrasi link wa.me</p>
+                <label for="teks_hero_deskripsi" class="field-label">Teks Deskripsi / Slogan (Hero Section)</label>
+                <textarea id="teks_hero_deskripsi" name="teks_hero_deskripsi" rows="3" required class="orvex-textarea"><?= esc($settings['teks_hero_deskripsi']) ?></textarea>
             </div>
-        </div>
 
-        <div class="border-t border-slate-100 pt-5 mt-5">
-            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Teks Judul Utama (Hero Section)</label>
-            <input type="text" name="teks_hero_judul" value="<?= esc($settings['teks_hero_judul']) ?>" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 focus:bg-white transition">
-        </div>
+            <div style="border-top:1px solid var(--line);padding-top:18px;">
+                <label for="teks_footer" class="field-label">Teks Hak Cipta (Footer)</label>
+                <input type="text" id="teks_footer" name="teks_footer" value="<?= esc($settings['teks_footer']) ?>" required class="orvex-input">
+            </div>
 
-        <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Teks Deskripsi / Slogan (Hero Section)</label>
-            <textarea name="teks_hero_deskripsi" rows="3" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 focus:bg-white transition"><?= esc($settings['teks_hero_deskripsi']) ?></textarea>
-        </div>
-
-        <div class="border-t border-slate-100 pt-5 mt-5">
-            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Teks Hak Cipta (Footer)</label>
-            <input type="text" name="teks_footer" value="<?= esc($settings['teks_footer']) ?>" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 focus:bg-white transition">
-        </div>
-
-        <div class="pt-2">
-            <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-lg transition shadow-[0_4px_10px_rgba(37,99,235,0.3)] flex items-center justify-center">
-                <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simpan Konfigurasi
-            </button>
-        </div>
-    </form>
+            <div style="display:flex;justify-content:flex-end;padding-top:6px;">
+                <button type="submit" class="orvex-btn orvex-btn--accent">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Konfigurasi
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
+    (function () {
+        const themeBtns = Array.from(document.querySelectorAll('.theme-opt'));
+        function syncThemeCards() {
+            const cur = document.documentElement.getAttribute('data-theme') || 'light';
+            themeBtns.forEach((btn) => {
+                btn.classList.toggle('is-selected', btn.dataset.themePick === cur);
+            });
+        }
+        syncThemeCards();
+        window.addEventListener('orvex-theme-change', syncThemeCards);
+
+        themeBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (typeof window.setOrvexTheme === 'function') {
+                    window.setOrvexTheme(btn.dataset.themePick);
+                }
+            });
+        });
+
+        /* Live Preview Updates */
+        const brandInput = document.getElementById('nama_web');
+        const heroInput = document.getElementById('teks_hero_judul');
+        const brandPreview = document.getElementById('live-preview-brand');
+        const heroPreview = document.getElementById('live-preview-hero');
+
+        if (brandInput && brandPreview) {
+            brandInput.addEventListener('input', () => {
+                brandPreview.textContent = brandInput.value || 'Studio PASTI';
+            });
+        }
+        if (heroInput && heroPreview) {
+            heroInput.addEventListener('input', () => {
+                heroPreview.textContent = heroInput.value || '';
+            });
+        }
+    })();
+
     <?php if (session()->getFlashdata('success')) : ?>
         Swal.fire({
             title: 'Berhasil',
-            text: '<?= session()->getFlashdata('success') ?>',
+            text: '<?= esc(session()->getFlashdata('success'), 'js') ?>',
             icon: 'success',
             confirmButtonText: 'Tutup'
         });

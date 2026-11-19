@@ -25,9 +25,24 @@ class Admin extends BaseController
     public function index()
     {
         $this->checkAuth();
+        $settingModel = new WebSettingModel();
+        $settings     = $settingModel->first();
+
+        if (!$settings) {
+            $settings = [
+                'nama_web'            => 'Studio PASTI',
+                'nomor_wa'            => '628xxxxxxxxxx',
+                'teks_hero_judul'     => 'Prima Automasi Sistem Teknologi Informasi',
+                'teks_hero_deskripsi' => 'Sistem sedang dalam konfigurasi awal.',
+                'teks_footer'         => '© 2026 Studio PASTI'
+            ];
+        }
+
         $data = [
-            'title' => 'Dasbor Utama - Studio PASTI',
-            'total_portfolio' => $this->portfolioModel->countAll()
+            'title'           => 'Dasbor Utama - Studio PASTI',
+            'total_portfolio' => $this->portfolioModel->countAll(),
+            'portfolios'      => $this->portfolioModel->orderBy('urutan', 'ASC')->findAll(),
+            'settings'        => $settings
         ];
         return view('admin/dashboard', $data);
     }

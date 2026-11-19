@@ -1,70 +1,171 @@
 <?= $this->extend('admin/layout') ?>
+
 <?= $this->section('content') ?>
 
-<div class="mb-6">
-    <a href="<?= base_url('admin/portfolio') ?>" class="text-xs text-slate-500 hover:text-blue-600 transition flex items-center gap-1">
-        <i class="fa-solid fa-arrow-left"></i> Kembali ke Tabel
-    </a>
-    <h3 class="text-xl font-bold text-slate-800 mt-2">Edit Data Proyek</h3>
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+    }
+
+    .form-fields {
+        display: grid;
+        gap: 18px;
+    }
+
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .upload-stage {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: var(--r-xl);
+        background-color: #ffffff;
+        border: 2px dashed var(--line-2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+    }
+
+    .upload-stage:hover {
+        border-color: var(--accent);
+    }
+
+    .upload-stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 18px;
+        background-color: #ffffff;
+        z-index: 10;
+    }
+
+    .upload-stage input[type="file"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 20;
+    }
+
+    .ck.ck-editor__main > .ck-editor__editable {
+        min-height: 160px;
+        background-color: var(--panel) !important;
+        color: var(--ink) !important;
+        border-color: var(--line-2) !important;
+        font-family: 'Ubuntu', sans-serif !important;
+    }
+
+    .ck.ck-toolbar {
+        background-color: var(--card-2) !important;
+        border-color: var(--line-2) !important;
+    }
+
+    .ck.ck-toolbar .ck-button {
+        color: var(--ink) !important;
+    }
+
+    .ck.ck-editor__editable.ck-focused {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(243, 122, 31, 0.16) !important;
+    }
+
+    @media (max-width: 900px) {
+        .form-grid,
+        .form-row-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="phead">
+    <div>
+        <a href="<?= base_url('admin/portfolio') ?>" class="orvex-btn" style="min-height:36px;padding:0 12px;font-size:12px;margin-bottom:10px;">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Tabel
+        </a>
+        <div>
+            <h1 class="phead__title">
+                <span class="phead__mark">Edit Data Proyek</span>
+            </h1>
+            <p class="phead__sub">Perbarui informasi, status demo, atau ikon aplikasi <strong><?= esc($portfolio['judul']) ?></strong>.</p>
+        </div>
+    </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 max-w-4xl">
-    <form action="<?= base_url('admin/portfolio/update/' . $portfolio['id']) ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+<div class="orvex-card" style="max-width:1040px;">
+    <form action="<?= base_url('admin/portfolio/update/' . $portfolio['id']) ?>" method="POST" enctype="multipart/form-data">
         <?= csrf_field() ?>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Logo Aplikasi (Preview)</label>
-                <div class="w-full aspect-square bg-white border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-blue-500 transition shadow-sm p-4">
-
-                    <img id="preview-logo" src="<?= base_url('uploads/portfolios/' . esc($portfolio['logo'])) ?>" class="absolute inset-0 w-full h-full object-contain p-4 bg-white z-10">
-
-                    <input type="file" name="logo" accept="image/*" onchange="previewImage(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" title="Klik untuk mengganti logo">
+        <div class="form-grid">
+            <div>
+                <span class="field-label">Logo Aplikasi (Preview)</span>
+                <div class="upload-stage">
+                    <img id="preview-logo" src="<?= base_url('uploads/portfolios/' . esc($portfolio['logo'])) ?>" alt="Logo <?= esc($portfolio['judul']) ?>">
+                    <input type="file" name="logo" accept="image/*" onchange="previewImage(event)" title="Klik untuk mengganti logo">
                 </div>
-                <p class="text-[10px] text-slate-400 mt-2 text-center">Biarkan kosong jika tidak ingin mengganti logo. Maks 2MB.</p>
+                <p style="font-size:11.5px;color:var(--muted);margin:10px 0 0;text-align:center;">
+                    Biarkan kosong jika tidak ingin mengganti logo. Maks 2MB.
+                </p>
             </div>
 
-            <div class="lg:col-span-2 space-y-5">
+            <div class="form-fields">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nama / Judul Aplikasi</label>
-                    <input type="text" name="judul" value="<?= esc($portfolio['judul']) ?>" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 transition">
+                    <label for="judul" class="field-label">Nama / Judul Aplikasi</label>
+                    <input type="text" id="judul" name="judul" value="<?= esc($portfolio['judul']) ?>" required class="orvex-input">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Deskripsi Lengkap & Fitur</label>
+                    <label for="editor" class="field-label">Deskripsi Lengkap &amp; Fitur</label>
                     <textarea id="editor" name="deskripsi"><?= $portfolio['deskripsi'] ?></textarea>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-row-2">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Tautan GitHub</label>
-                        <input type="text" name="link_github" value="<?= esc($portfolio['link_github']) ?>" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 transition">
+                        <label for="link_github" class="field-label">Tautan GitHub</label>
+                        <input type="text" id="link_github" name="link_github" value="<?= esc($portfolio['link_github']) ?>" class="orvex-input">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">URL Aplikasi Demo</label>
-                        <input type="text" name="link_demo" value="<?= esc($portfolio['link_demo']) ?>" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 transition">
+                        <label for="link_demo" class="field-label">URL Aplikasi Demo</label>
+                        <input type="text" id="link_demo" name="link_demo" value="<?= esc($portfolio['link_demo']) ?>" class="orvex-input">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-row-2">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Status Demo</label>
-                        <select name="status_demo" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 transition">
+                        <label for="status_demo" class="field-label">Status Demo</label>
+                        <select id="status_demo" name="status_demo" class="orvex-select">
                             <option value="ready" <?= $portfolio['status_demo'] == 'ready' ? 'selected' : '' ?>>Ready (Siap Diuji)</option>
                             <option value="maintenance" <?= $portfolio['status_demo'] == 'maintenance' ? 'selected' : '' ?>>Maintenance (Pemeliharaan)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nomor Urutan Tampil</label>
-                        <input type="number" name="urutan" value="<?= esc($portfolio['urutan']) ?>" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg p-2.5 outline-none focus:border-blue-500 transition">
+                        <label for="urutan" class="field-label">Nomor Urutan Tampil</label>
+                        <input type="number" id="urutan" name="urutan" value="<?= esc($portfolio['urutan']) ?>" class="orvex-input tabular-nums">
                     </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:10px;border-top:1px solid var(--line);">
+                    <a href="<?= base_url('admin/portfolio') ?>" class="orvex-btn">Batal</a>
+                    <button type="submit" class="orvex-btn orvex-btn--accent">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                    </button>
                 </div>
             </div>
         </div>
-
-        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-lg transition shadow-md flex items-center justify-center w-full lg:w-auto ml-auto mt-4">
-            <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Perubahan
-        </button>
     </form>
 </div>
 
@@ -74,13 +175,14 @@
         .create(document.querySelector('#editor'), {
             toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo']
         })
-        .catch(error => {
+        .catch((error) => {
             console.error(error);
         });
 
     function previewImage(event) {
+        if (!event.target.files || !event.target.files[0]) return;
         const reader = new FileReader();
-        reader.onload = function() {
+        reader.onload = function () {
             const output = document.getElementById('preview-logo');
             output.src = reader.result;
         };
@@ -88,17 +190,4 @@
     }
 </script>
 
-<style>
-    .ck-editor__editable_inline {
-        min-height: 150px;
-        background-color: #f8fafc !important;
-        border-color: #e2e8f0 !important;
-        font-family: inherit !important;
-    }
-
-    .ck-editor__editable.ck-focused {
-        border-color: #3b82f6 !important;
-        box-shadow: none !important;
-    }
-</style>
 <?= $this->endSection() ?>
