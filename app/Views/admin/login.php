@@ -499,7 +499,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('<?= base_url('sw.js') ?>').catch((err) => {
+                navigator.serviceWorker.register('<?= base_url('sw.js') ?>', { scope: '/' }).catch((err) => {
                     console.warn('Service Worker registration failed:', err);
                 });
             });

@@ -200,4 +200,25 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (PHP_SAPI !== 'cli' && ! empty($_SERVER['HTTP_HOST'])) {
+            $isHttps = (! empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+                || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+
+            $scheme = $isHttps ? 'https' : 'http';
+            $host   = $_SERVER['HTTP_HOST'];
+
+            $isDefaultLocal    = $this->baseURL === '' || str_starts_with($this->baseURL, 'http://localhost');
+            $needsHttpsUpgrade = $isHttps && str_starts_with($this->baseURL, 'http://');
+
+            if (($isDefaultLocal && ! str_starts_with($host, 'localhost')) || $needsHttpsUpgrade) {
+                $this->baseURL = $scheme . '://' . $host . '/';
+            }
+        }
+    }
 }

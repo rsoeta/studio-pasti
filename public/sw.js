@@ -1,9 +1,9 @@
-const CACHE_NAME = 'studio-pasti-pwa-v1';
+const CACHE_NAME = 'studio-pasti-pwa-v2';
 const PRECACHE_ASSETS = [
-  './offline.html',
-  './manifest.json',
-  './icons/icon-192x192.png',
-  './icons/icon-512x512.png'
+  '/offline.html',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
 const SENSITIVE_PATH_PATTERNS = [
@@ -25,7 +25,9 @@ function isSensitiveRequest(url) {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.allSettled(PRECACHE_ASSETS.map((url) => cache.add(url)))
+    )
   );
   self.skipWaiting();
 });
@@ -66,7 +68,7 @@ self.addEventListener('fetch', (event) => {
   if (isSensitiveRequest(url)) {
     if (isHtmlNavigation) {
       event.respondWith(
-        fetch(request).catch(() => caches.match('./offline.html'))
+        fetch(request).catch(() => caches.match('/offline.html'))
       );
     }
     return;
@@ -94,7 +96,7 @@ self.addEventListener('fetch', (event) => {
           return cachedResponse;
         }
         if (isHtmlNavigation) {
-          return caches.match('./offline.html');
+          return caches.match('/offline.html');
         }
         return Response.error();
       })
