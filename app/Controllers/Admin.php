@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SecurityConfig;
+use App\Models\AdminUserModel;
 use App\Models\PortfolioModel;
 use App\Models\WebSettingModel;
 
@@ -196,7 +198,9 @@ class Admin extends BaseController
 
         $data = [
             'title'    => 'Pengaturan Web - Studio PASTI',
-            'settings' => $settings
+            'settings' => $settings,
+            'security' => SecurityConfig::get(),
+            'admins'   => (new AdminUserModel())->orderBy('id', 'ASC')->findAll(),
         ];
         return view('admin/settings/index', $data);
     }
@@ -216,5 +220,87 @@ class Admin extends BaseController
         ]);
 
         return redirect()->to('/admin/settings')->with('success', 'Konfigurasi website berhasil diperbarui.');
+    }
+
+    public function securityUpdate()
+    {
+        $this->checkAuth();
+
+        $saved = SecurityConfig::save([
+            'turnstile_site_key'   => $this->request->getPost('turnstile_site_key'),
+            'turnstile_secret_key' => $this->request->getPost('turnstile_secret_key'),
+            'google_client_id'     => $this->request->getPost('google_client_id'),
+            'google_client_secret' => $this->request->getPost('google_client_secret'),
+        ]);
+
+        if (!$saved) {
+            return redirect()->to('/admin/settings')->with('error', 'Gagal menyimpan konfigurasi keamanan ke direktori writable.');
+        }
+
+        return redirect()->to('/admin/settings')->with('success', 'Konfigurasi keamanan Cloudflare Turnstile & Google OAuth berhasil disimpan.');
+    }
+
+    public function whitelistStore()
+    {
+        $this->checkAuth();
+        $adminModel = new AdminUserModel();
+
+        $nama     = trim((string) $this->request->getPost('nama_lengkap'));
+        $email    = strtolower(trim((string) $this->request->getPost('email')));
+        $username = trim((string) $this->request->getPost('username'));
+        $password = (string) $this->request->getPost('password');
+
+        if ($nama === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->to('/admin/settings')->with('error', 'Nama lengkap dan alamat email Google yang valid wajib diisi.');
+        }
+
+        if ($adminModel->where('LOWER(email)', $email)->first()) {
+            return redirect()->to('/admin/settings')->with('error', 'Email tersebut sudah terdaftar di dalam Whitelist Admin.');
+        }
+
+        if ($username === '') {
+            $baseUsername = preg_replace('/[^a-z0-9_]/', '', strtolower((string) strstr($email, '@', true))) ?: 'admin';
+            $username     = $baseUsername;
+            $suffix       = 1;
+            while ($adminModel->where('username', $username)->first()) {
+                $username = $baseUsername . $suffix;
+                $suffix++;
+            }
+        } elseif ($adminModel->where('username', $username)->first()) {
+            return redirect()->to('/admin/settings')->with('error', 'Username sudah digunakan oleh akun admin lain.');
+        }
+
+        $rawPassword = $password !== '' ? $password : bin2hex(random_bytes(16));
+
+        $adminModel->insert([
+            'nama_lengkap'  => $nama,
+            'username'      => $username,
+            'email'         => $email,
+            'password_hash' => password_hash($rawPassword, PASSWORD_DEFAULT),
+        ]);
+
+        return redirect()->to('/admin/settings')->with('success', 'Email Google berhasil ditambahkan ke Whitelist Admin.');
+    }
+
+    public function whitelistDelete($id)
+    {
+        $this->checkAuth();
+        $adminModel = new AdminUserModel();
+
+        if ((int) $id === (int) session()->get('admin_id')) {
+            return redirect()->to('/admin/settings')->with('error', 'Anda tidak dapat menghapus akun admin yang sedang aktif digunakan.');
+        }
+
+        if ($adminModel->countAll() <= 1) {
+            return redirect()->to('/admin/settings')->with('error', 'Minimal harus tersisa 1 akun admin di dalam sistem.');
+        }
+
+        $target = $adminModel->find($id);
+        if (!$target) {
+            return redirect()->to('/admin/settings')->with('error', 'Data admin tidak ditemukan.');
+        }
+
+        $adminModel->delete($id);
+        return redirect()->to('/admin/settings')->with('success', 'Akses Whitelist Admin berhasil dihapus.');
     }
 }

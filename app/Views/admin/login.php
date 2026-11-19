@@ -20,6 +20,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php $security = $security ?? []; ?>
+    <?php if (!empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key'])) : ?>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <?php endif; ?>
 
     <script>
         (function () {
@@ -320,6 +324,64 @@
             transform: translateY(-1px);
         }
 
+        .oauth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .oauth-divider::before,
+        .oauth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: var(--line-2);
+        }
+
+        .btn-google {
+            width: 100%;
+            min-height: 46px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--line-2);
+            background-color: var(--panel);
+            color: var(--ink);
+            font-size: 13.5px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease);
+        }
+
+        .btn-google:hover {
+            background-color: var(--paper);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .oauth-note {
+            margin: 10px 0 0;
+            font-size: 11.5px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.45;
+        }
+
+        .turnstile-wrap {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 2px 0;
+        }
+
         .login-foot {
             margin-top: 22px;
             padding-top: 16px;
@@ -440,10 +502,32 @@
                     </div>
                 </div>
 
+                <?php if (!empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key'])) : ?>
+                    <div class="turnstile-wrap">
+                        <div class="cf-turnstile" data-sitekey="<?= esc($security['turnstile_site_key']) ?>" data-theme="auto"></div>
+                    </div>
+                <?php endif; ?>
+
                 <button type="submit" class="btn-submit">
                     <i class="fa-solid fa-right-to-bracket"></i> Masuk Sistem
                 </button>
             </form>
+
+            <div class="oauth-divider"><span>Atau</span></div>
+
+            <a href="<?= base_url('auth/google') ?>" class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+                    <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+                </svg>
+                <span>Masuk dengan Google</span>
+            </a>
+            <p class="oauth-note">
+                <i class="fa-solid fa-lock" style="margin-right:4px;"></i>
+                Hanya email Google yang terdaftar pada <strong>Whitelist Admin</strong> yang diizinkan masuk.
+            </p>
 
             <div class="login-foot">
                 <a href="<?= base_url() ?>" class="back-link">

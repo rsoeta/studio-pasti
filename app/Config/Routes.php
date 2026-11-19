@@ -7,6 +7,8 @@ $routes->get('/', 'Home::index');
 
 $routes->get('auth/login', 'Auth::login');
 $routes->post('auth/attempt', 'Auth::attemptLogin');
+$routes->get('auth/google', 'Auth::googleRedirect');
+$routes->get('auth/google/callback', 'Auth::googleCallback');
 $routes->get('auth/logout', 'Auth::logout');
 $routes->get('admin/dashboard', 'Admin::index');
 
@@ -19,3 +21,6 @@ $routes->get('admin/portfolio/toggle/(:num)', 'Admin::portfolioToggle/$1');
 $routes->get('admin/portfolio/delete/(:num)', 'Admin::portfolioDelete/$1');
 $routes->get('admin/settings', 'Admin::settingsIndex');
 $routes->post('admin/settings/update', 'Admin::settingsUpdate');
+$routes->post('admin/settings/security', 'Admin::securityUpdate');
+$routes->post('admin/settings/whitelist/store', 'Admin::whitelistStore');
+$routes->get('admin/settings/whitelist/delete/(:num)', 'Admin::whitelistDelete/$1');

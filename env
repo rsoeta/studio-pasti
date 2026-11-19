@@ -67,3 +67,12 @@
 #--------------------------------------------------------------------
 
 # logger.threshold = 4
+
+#--------------------------------------------------------------------
+# SECURITY: CLOUDFLARE TURNSTILE & GOOGLE OAUTH 2.0
+#--------------------------------------------------------------------
+
+# TURNSTILE_SITE_KEY = ''
+# TURNSTILE_SECRET_KEY = ''
+# GOOGLE_CLIENT_ID = ''
+# GOOGLE_CLIENT_SECRET = ''

@@ -87,9 +87,54 @@
 
     @media (max-width: 960px) {
         .settings-grid,
-        .settings-row-2 {
+        .settings-row-2,
+        .security-grid {
             grid-template-columns: 1fr;
         }
+    }
+
+    .security-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+    }
+
+    .security-grid > .orvex-card {
+        min-width: 0;
+    }
+
+    .whitelist-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+        margin-bottom: 18px;
+    }
+
+    .whitelist-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: var(--r-md);
+        background-color: var(--panel);
+        border: 1px solid var(--line);
+    }
+
+    .copy-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .copy-box .orvex-input {
+        font-size: 12px;
+        min-height: 40px;
+        background-color: var(--card-2);
     }
 </style>
 
@@ -202,6 +247,158 @@
     </div>
 </div>
 
+<?php
+$security = $security ?? [
+    'turnstile_site_key'   => '',
+    'turnstile_secret_key' => '',
+    'google_client_id'     => '',
+    'google_client_secret' => '',
+];
+$admins         = $admins ?? [];
+$turnstileReady = !empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key']);
+$googleReady    = !empty($security['google_client_id']) && !empty($security['google_client_secret']);
+?>
+
+<!-- Security & Google OAuth Whitelist Grid -->
+<div class="security-grid">
+    <!-- Whitelist Google OAuth Admin -->
+    <section class="orvex-card" aria-label="Whitelist Google OAuth Admin">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+                <h2 class="ctitle" style="font-size:16px;">Whitelist Google OAuth Admin</h2>
+                <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">
+                    Hanya akun Google dengan email di daftar ini yang dapat masuk ke Panel Admin.
+                </p>
+            </div>
+            <span class="badge badge--info tabular-nums"><?= count($admins) ?> Akun</span>
+        </div>
+
+        <div class="whitelist-list">
+            <?php foreach ($admins as $adm): ?>
+                <?php $isSelf = (int) $adm['id'] === (int) session()->get('admin_id'); ?>
+                <div class="whitelist-item">
+                    <div style="min-width:0;flex:1 1 200px;">
+                        <div style="font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span><?= esc($adm['nama_lengkap']) ?></span>
+                            <?php if ($isSelf): ?>
+                                <span class="badge badge--good">Sesi Aktif</span>
+                            <?php endif; ?>
+                        </div>
+                        <div style="font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere;">
+                            <i class="fa-solid fa-envelope" style="margin-right:4px;"></i><?= esc($adm['email']) ?>
+                            &bull; @<?= esc($adm['username']) ?>
+                        </div>
+                    </div>
+
+                    <?php if (!$isSelf && count($admins) > 1): ?>
+                        <button
+                            type="button"
+                            onclick="confirmDeleteAdmin('<?= (int) $adm['id'] ?>', '<?= esc($adm['email'], 'js') ?>')"
+                            class="orvex-btn orvex-btn--icon orvex-btn--danger"
+                            title="Hapus dari Whitelist"
+                            aria-label="Hapus <?= esc($adm['email']) ?>">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <form action="<?= base_url('admin/settings/whitelist/store') ?>" method="POST" class="settings-form-stack" style="border-top:1px solid var(--line);padding-top:16px;">
+            <?= csrf_field() ?>
+            <h3 class="ctitle" style="font-size:13.5px;">Tambah Email Google ke Whitelist</h3>
+
+            <div class="settings-row-2">
+                <div>
+                    <label for="wl-nama" class="field-label">Nama Lengkap</label>
+                    <input type="text" id="wl-nama" name="nama_lengkap" required class="orvex-input" placeholder="Contoh: Rian Sutarsa">
+                </div>
+                <div>
+                    <label for="wl-email" class="field-label">Email Google</label>
+                    <input type="email" id="wl-email" name="email" required class="orvex-input" placeholder="nama@gmail.com">
+                </div>
+            </div>
+
+            <div class="settings-row-2">
+                <div>
+                    <label for="wl-user" class="field-label">Username (Opsional)</label>
+                    <input type="text" id="wl-user" name="username" class="orvex-input" placeholder="Otomatis dari email">
+                </div>
+                <div>
+                    <label for="wl-pass" class="field-label">Kata Sandi (Opsional)</label>
+                    <input type="password" id="wl-pass" name="password" class="orvex-input" placeholder="Kosongkan jika khusus Google">
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;">
+                <button type="submit" class="orvex-btn orvex-btn--accent">
+                    <i class="fa-solid fa-user-plus"></i> Tambah ke Whitelist
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Cloudflare Turnstile & Google OAuth Keys -->
+    <section class="orvex-card" aria-label="Konfigurasi Keamanan Login">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+            <div>
+                <h2 class="ctitle" style="font-size:16px;">Keamanan Login &amp; Anti-Bot</h2>
+                <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">
+                    Integrasi Cloudflare Turnstile dan kredensial Google OAuth 2.0.
+                </p>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="badge <?= $turnstileReady ? 'badge--good' : 'badge--warn' ?>">
+                    Turnstile: <?= $turnstileReady ? 'Aktif' : 'Belum Diisi' ?>
+                </span>
+                <span class="badge <?= $googleReady ? 'badge--good' : 'badge--warn' ?>">
+                    Google: <?= $googleReady ? 'Aktif' : 'Belum Diisi' ?>
+                </span>
+            </div>
+        </div>
+
+        <form action="<?= base_url('admin/settings/security') ?>" method="POST" class="settings-form-stack">
+            <?= csrf_field() ?>
+
+            <div>
+                <label for="turnstile_site_key" class="field-label">Cloudflare Turnstile Site Key</label>
+                <input type="text" id="turnstile_site_key" name="turnstile_site_key" value="<?= esc($security['turnstile_site_key']) ?>" class="orvex-input" placeholder="0x4AAAAAAA...">
+            </div>
+
+            <div>
+                <label for="turnstile_secret_key" class="field-label">Cloudflare Turnstile Secret Key</label>
+                <input type="password" id="turnstile_secret_key" name="turnstile_secret_key" value="<?= esc($security['turnstile_secret_key']) ?>" class="orvex-input" placeholder="0x4AAAAAAA...">
+            </div>
+
+            <div style="border-top:1px solid var(--line);padding-top:14px;">
+                <label for="google_client_id" class="field-label">Google OAuth Client ID</label>
+                <input type="text" id="google_client_id" name="google_client_id" value="<?= esc($security['google_client_id']) ?>" class="orvex-input" placeholder="xxxx.apps.googleusercontent.com">
+            </div>
+
+            <div>
+                <label for="google_client_secret" class="field-label">Google OAuth Client Secret</label>
+                <input type="password" id="google_client_secret" name="google_client_secret" value="<?= esc($security['google_client_secret']) ?>" class="orvex-input" placeholder="GOCSPX-...">
+            </div>
+
+            <div>
+                <span class="field-label">Authorized Redirect URI (Salin ke Google Cloud Console)</span>
+                <div class="copy-box">
+                    <input type="text" id="oauth-redirect-uri" readonly value="<?= esc(base_url('auth/google/callback')) ?>" class="orvex-input">
+                    <button type="button" onclick="copyRedirectUri()" class="orvex-btn" style="min-height:40px;flex-shrink:0;">
+                        <i class="fa-solid fa-copy"></i> Salin
+                    </button>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;padding-top:4px;">
+                <button type="submit" class="orvex-btn orvex-btn--accent">
+                    <i class="fa-solid fa-shield-halved"></i> Simpan Keamanan Login
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
 <script>
     (function () {
         const themeBtns = Array.from(document.querySelectorAll('.theme-opt'));
@@ -248,6 +445,48 @@
             confirmButtonText: 'Tutup'
         });
     <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')) : ?>
+        Swal.fire({
+            title: 'Gagal',
+            text: '<?= esc(session()->getFlashdata('error'), 'js') ?>',
+            icon: 'error',
+            confirmButtonText: 'Tutup'
+        });
+    <?php endif; ?>
+
+    function confirmDeleteAdmin(id, email) {
+        Swal.fire({
+            title: 'Hapus Akses Whitelist?',
+            text: "Email '" + email + "' tidak akan bisa login lagi ke Panel Admin.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "<?= base_url('admin/settings/whitelist/delete/') ?>/" + id;
+            }
+        });
+    }
+
+    function copyRedirectUri() {
+        const input = document.getElementById('oauth-redirect-uri');
+        if (!input) return;
+        input.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(input.value);
+        } else {
+            document.execCommand('copy');
+        }
+        Swal.fire({
+            title: 'Disalin',
+            text: 'Authorized Redirect URI berhasil disalin ke clipboard.',
+            icon: 'success',
+            confirmButtonText: 'Tutup'
+        });
+    }
 </script>
 
 <?= $this->endSection() ?>
