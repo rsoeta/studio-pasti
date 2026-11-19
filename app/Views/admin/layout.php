@@ -216,6 +216,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: clip;
         }
 
         /* Sticky Frosted Topbar */
@@ -945,6 +946,11 @@
             padding: 0 18px !important;
         }
 
+        /* Telegram-Style Floating Bottom Chin Dock */
+        .tg-bottom-nav {
+            display: none;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .tnav-wrap,
@@ -959,7 +965,70 @@
             }
 
             .top__inner {
-                grid-template-columns: auto 1fr auto;
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+
+            .orvex-main {
+                padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .tg-bottom-nav {
+                position: fixed;
+                left: 50%;
+                bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+                transform: translateX(-50%);
+                z-index: 75;
+                width: min(440px, calc(100vw - 24px));
+                padding: 6px;
+                border-radius: 999px;
+                background-color: var(--topbar-bg);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+                    inset 0 0 0 1px var(--g-line),
+                    0 16px 38px rgba(5, 14, 24, 0.52);
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 4px;
+            }
+
+            .tg-bottom-nav__item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                min-height: 50px;
+                padding: 6px 4px;
+                border-radius: 999px;
+                color: var(--g-muted);
+                font-size: 10.5px;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+                transition: background-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+            }
+
+            .tg-bottom-nav__item i {
+                font-size: 15px;
+            }
+
+            .tg-bottom-nav__item span {
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .tg-bottom-nav__item:active {
+                transform: scale(0.95);
+            }
+
+            .tg-bottom-nav__item.is-active {
+                background-color: var(--accent);
+                color: var(--accent-ink);
+                font-weight: 700;
+                box-shadow: 0 4px 14px rgba(243, 122, 31, 0.35);
             }
         }
 
@@ -1135,6 +1204,30 @@
         <main id="main-content" class="orvex-main">
             <?= $this->renderSection('content') ?>
         </main>
+
+        <!-- Telegram-Style Floating Rounded Bottom Navigation Bar (Mobile / Tablet) -->
+        <nav class="tg-bottom-nav" aria-label="Menu mengambang bawah">
+            <a href="<?= base_url('admin/dashboard') ?>" class="tg-bottom-nav__item <?= (url_is('admin/dashboard') ? 'is-active' : '') ?>">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span>Dasbor</span>
+            </a>
+            <a href="<?= base_url('admin/portfolio') ?>" class="tg-bottom-nav__item <?= (url_is('admin/portfolio') || url_is('admin/portfolio/edit*') ? 'is-active' : '') ?>">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Portofolio</span>
+            </a>
+            <a href="<?= base_url('admin/portfolio/create') ?>" class="tg-bottom-nav__item <?= (url_is('admin/portfolio/create') ? 'is-active' : '') ?>">
+                <i class="fa-solid fa-circle-plus"></i>
+                <span>Tambah</span>
+            </a>
+            <a href="<?= base_url('admin/settings') ?>" class="tg-bottom-nav__item <?= (url_is('admin/settings*') ? 'is-active' : '') ?>">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Setelan</span>
+            </a>
+            <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" class="tg-bottom-nav__item">
+                <i class="fa-solid fa-globe"></i>
+                <span>Etalase</span>
+            </a>
+        </nav>
     </div>
 
     <!-- Command Palette Modal (Ctrl+K / /) -->

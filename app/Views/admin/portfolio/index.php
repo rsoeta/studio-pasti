@@ -150,6 +150,9 @@ foreach ($portfolios as $item) {
         font-weight: 700;
         text-align: left;
         cursor: pointer;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .app-title-btn:hover {
@@ -158,13 +161,14 @@ foreach ($portfolios as $item) {
     }
 
     .app-excerpt {
-        margin: 4px 0 0;
+        margin: 6px 0 0;
         font-size: 12.5px;
+        line-height: 1.55;
         color: var(--muted);
-        max-width: 360px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: 480px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .is-attention .app-excerpt {
@@ -286,28 +290,47 @@ foreach ($portfolios as $item) {
     }
 
     @media (max-width: 820px) {
+        .table-scroll {
+            overflow-x: hidden;
+        }
+
+        .orvex-table,
+        .orvex-table tbody {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+        }
+
         .orvex-table thead {
             display: none;
         }
 
-        .orvex-table tbody,
-        .orvex-table tr,
+        .orvex-table tbody tr {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 16px;
+        }
+
         .orvex-table td {
             display: block;
             width: 100%;
+            min-width: 0;
+            padding: 0;
+            text-align: left !important;
         }
 
-        .orvex-table tbody tr {
-            padding: 14px;
-        }
-
-        .orvex-table td {
-            padding: 6px 0;
+        .orvex-table td .logo-box {
+            margin: 0 !important;
         }
 
         .action-row {
             justify-content: flex-start;
-            margin-top: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
         }
 
         .app-excerpt {

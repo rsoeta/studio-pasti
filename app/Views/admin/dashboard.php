@@ -42,6 +42,9 @@ $radarNodes = array_slice($portfolios, 0, 12);
         gap: 20px;
         align-items: stretch;
         margin-bottom: 14px;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .hero-left {
@@ -49,6 +52,8 @@ $radarNodes = array_slice($portfolios, 0, 12);
         flex-direction: column;
         justify-content: space-between;
         gap: 14px;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .hero-greeting-title {
@@ -169,13 +174,16 @@ $radarNodes = array_slice($portfolios, 0, 12);
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .radar-head {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 6px 10px;
         font-size: 12px;
         color: var(--muted);
         font-weight: 600;
@@ -212,6 +220,8 @@ $radarNodes = array_slice($portfolios, 0, 12);
         flex-direction: column;
         justify-content: space-between;
         gap: 12px;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .feed-head {
@@ -241,11 +251,12 @@ $radarNodes = array_slice($portfolios, 0, 12);
         max-height: 258px;
         overflow-y: auto;
         padding-right: 2px;
+        min-width: 0;
     }
 
     .feed-item {
         display: grid;
-        grid-template-columns: 28px 1fr auto;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
         align-items: center;
         gap: 10px;
         padding: 9px 10px;
@@ -253,6 +264,7 @@ $radarNodes = array_slice($portfolios, 0, 12);
         background-color: var(--card);
         border: 1px solid var(--line);
         color: var(--ink);
+        min-width: 0;
         transition: border-color 0.2s ease, transform 0.2s ease;
     }
 
@@ -288,6 +300,14 @@ $radarNodes = array_slice($portfolios, 0, 12);
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: var(--gap);
         margin-bottom: 14px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .summary-grid > .orvex-card {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .card-top {
@@ -296,12 +316,18 @@ $radarNodes = array_slice($portfolios, 0, 12);
         justify-content: space-between;
         gap: 10px;
         margin-bottom: 14px;
+        min-width: 0;
+    }
+
+    .card-top > div {
+        min-width: 0;
     }
 
     .iconlink {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         width: 36px;
         height: 36px;
         border-radius: var(--r-sm);
@@ -318,6 +344,7 @@ $radarNodes = array_slice($portfolios, 0, 12);
     .mini-list {
         display: grid;
         gap: 8px;
+        min-width: 0;
     }
 
     .mini-row {
@@ -330,6 +357,23 @@ $radarNodes = array_slice($portfolios, 0, 12);
         background-color: rgba(255, 255, 255, 0.52);
         border: 1px solid rgba(15, 30, 45, 0.08);
         font-size: 12.5px;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .mini-row > span:first-child {
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow-wrap: anywhere;
+    }
+
+    .mini-row > strong,
+    .mini-row > .badge,
+    .mini-row > i {
+        flex-shrink: 0;
+        max-width: 58%;
+        overflow-wrap: anywhere;
+        text-align: right;
     }
 
     [data-theme="dark"] .mini-row {
@@ -395,7 +439,7 @@ $radarNodes = array_slice($portfolios, 0, 12);
 
     @media (max-width: 1200px) {
         .orvex-hero {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .summary-grid {
@@ -404,8 +448,17 @@ $radarNodes = array_slice($portfolios, 0, 12);
     }
 
     @media (max-width: 640px) {
+        .orvex-hero,
+        .orvex-card {
+            padding: 16px;
+        }
+
         .summary-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .handover {
+            padding: 14px 16px;
         }
     }
 </style>
