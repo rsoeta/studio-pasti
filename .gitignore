@@ -44,6 +44,7 @@ $RECYCLE.BIN/
 .env
 .vagrant
 Vagrantfile
+writable/security_config.json
 
 #-------------------------
 # Temporary Files
