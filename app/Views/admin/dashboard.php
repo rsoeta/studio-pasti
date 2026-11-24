@@ -137,6 +137,7 @@ $radarNodes = array_slice($portfolios, 0, 12);
     }
 
     .seg-control {
+        position: relative;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
@@ -146,7 +147,34 @@ $radarNodes = array_slice($portfolios, 0, 12);
         border: 1px solid var(--line);
     }
 
+    .seg-control__pill {
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 0;
+        border-radius: 7px;
+        background-color: var(--ink);
+        z-index: 1;
+        opacity: 0;
+        pointer-events: none;
+        will-change: transform, width;
+        transition:
+            transform 0.32s cubic-bezier(0.32, 1.18, 0.56, 1),
+            width 0.32s cubic-bezier(0.32, 1.18, 0.56, 1),
+            opacity 0.18s ease;
+    }
+
+    .seg-control__pill.is-ready {
+        opacity: 1;
+    }
+
+    .seg-control__pill.is-instant {
+        transition: none !important;
+    }
+
     .seg-btn {
+        position: relative;
+        z-index: 2;
         min-height: 36px;
         border: 0;
         border-radius: 7px;
@@ -155,11 +183,14 @@ $radarNodes = array_slice($portfolios, 0, 12);
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: color 0.22s ease, background-color 0.2s ease;
+    }
+
+    .seg-control:not(.has-pill) .seg-btn.is-active {
+        background-color: var(--ink);
     }
 
     .seg-btn.is-active {
-        background-color: var(--ink);
         color: var(--card);
     }
 
@@ -509,7 +540,8 @@ $radarNodes = array_slice($portfolios, 0, 12);
             <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">
                 Fokus Radar Sistem
             </div>
-            <div class="seg-control" role="group" aria-label="Filter radar sistem">
+            <div class="seg-control" id="radar-seg-control" role="group" aria-label="Filter radar sistem">
+                <span class="seg-control__pill" id="seg-control-pill" aria-hidden="true"></span>
                 <button type="button" class="seg-btn is-active" data-radar-mode="all">Semua</button>
                 <button type="button" class="seg-btn" data-radar-mode="ready">Ready</button>
                 <button type="button" class="seg-btn" data-radar-mode="active">Publik</button>
@@ -815,6 +847,8 @@ $radarNodes = array_slice($portfolios, 0, 12);
 
 <script>
     (function () {
+        const segControl = document.getElementById('radar-seg-control');
+        const segPill = document.getElementById('seg-control-pill');
         const segBtns = Array.from(document.querySelectorAll('.seg-btn'));
         const radarNodes = Array.from(document.querySelectorAll('.radar-node'));
         const radarArc = document.getElementById('radar-arc');
@@ -824,6 +858,32 @@ $radarNodes = array_slice($portfolios, 0, 12);
         const totalCount = <?= (int) $total ?>;
         const readyPct = <?= (int) $readyPct ?>;
         const activePct = <?= (int) $activePct ?>;
+
+        function moveSegPill(targetBtn, instant) {
+            if (!segControl || !segPill || !targetBtn || targetBtn.offsetWidth <= 0) return;
+            segControl.classList.add('has-pill');
+            if (instant) {
+                segPill.classList.add('is-instant');
+            } else {
+                segPill.classList.remove('is-instant');
+            }
+            segPill.style.width = targetBtn.offsetWidth + 'px';
+            segPill.style.transform = `translate3d(${targetBtn.offsetLeft}px, 0, 0)`;
+            segPill.classList.add('is-ready');
+            if (instant) {
+                void segPill.offsetWidth;
+                requestAnimationFrame(() => segPill.classList.remove('is-instant'));
+            }
+        }
+
+        const initialSeg = segBtns.find((b) => b.classList.contains('is-active')) || segBtns[0];
+        if (initialSeg) {
+            moveSegPill(initialSeg, true);
+        }
+        window.addEventListener('resize', () => {
+            const currentSeg = segBtns.find((b) => b.classList.contains('is-active'));
+            if (currentSeg) moveSegPill(currentSeg, true);
+        });
 
         function setArcPercentage(pct, label) {
             if (!radarArc || !radarPct || !radarLabel) return;
@@ -839,6 +899,7 @@ $radarNodes = array_slice($portfolios, 0, 12);
             btn.addEventListener('click', () => {
                 segBtns.forEach((b) => b.classList.remove('is-active'));
                 btn.classList.add('is-active');
+                moveSegPill(btn, false);
                 const mode = btn.dataset.radarMode;
 
                 radarNodes.forEach((node) => {

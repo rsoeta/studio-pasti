@@ -82,6 +82,15 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
             background-color: var(--c-night);
         }
 
+        @keyframes landingEnter {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -91,6 +100,18 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
             line-height: 1.55;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
+            animation: landingEnter 0.35s var(--ease-out) both;
+            transition: opacity 0.22s var(--ease-out);
+        }
+
+        body.is-page-leaving {
+            opacity: 0;
+        }
+
+        #katalog,
+        #arsitektur,
+        #footer {
+            scroll-margin-top: 84px;
         }
 
         img {
@@ -2104,7 +2125,7 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                     if (!targetEl) return;
                     e.preventDefault();
                     if (lenis) {
-                        lenis.scrollTo(targetEl, { offset: -20 });
+                        lenis.scrollTo(targetEl, { offset: targetSel === '#hero' ? 0 : -72 });
                     } else {
                         targetEl.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
                     }
@@ -2423,6 +2444,24 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                 });
             });
         }
+
+        (function () {
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const adminLink = document.querySelector('a.foot__admin');
+            if (adminLink && !prefersReducedMotion) {
+                adminLink.addEventListener('click', (e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                    e.preventDefault();
+                    document.body.classList.add('is-page-leaving');
+                    setTimeout(() => {
+                        window.location.href = adminLink.href;
+                    }, 180);
+                });
+            }
+            window.addEventListener('pageshow', () => {
+                document.body.classList.remove('is-page-leaving');
+            });
+        })();
     </script>
 </body>
 

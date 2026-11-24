@@ -117,6 +117,10 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         html,
         body {
             margin: 0;
@@ -186,6 +190,17 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
             background-color: var(--ground-hi);
         }
 
+        @keyframes loginCardEnter {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 14px, 0) scale(0.985);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+        }
+
         .login-card {
             position: relative;
             z-index: 10;
@@ -194,6 +209,19 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
             border-radius: var(--r-xl);
             padding: 32px;
             box-shadow: inset 0 1px 0 var(--top-light), inset 0 0 0 1px var(--line), var(--shadow);
+            animation: loginCardEnter 0.42s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto !important;
+            }
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
 
         .login-brand {

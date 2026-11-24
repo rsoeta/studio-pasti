@@ -38,6 +38,25 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 document.documentElement.setAttribute('data-theme', 'light');
             }
         })();
+        (function () {
+            try {
+                const raw = sessionStorage.getItem('orvex_nav_transition');
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed.ts !== 'number' || (Date.now() - parsed.ts) > 3000) return;
+                const root = document.documentElement;
+                if (parsed.dir > 0) {
+                    root.style.setProperty('--enter-x', '16px');
+                    root.style.setProperty('--enter-y', '0px');
+                } else if (parsed.dir < 0) {
+                    root.style.setProperty('--enter-x', '-16px');
+                    root.style.setProperty('--enter-y', '0px');
+                } else {
+                    root.style.setProperty('--enter-x', '0px');
+                    root.style.setProperty('--enter-y', '10px');
+                }
+            } catch (e) {}
+        })();
     </script>
 
     <style>
@@ -165,6 +184,11 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 84px;
+        }
+
         html,
         body {
             margin: 0;
@@ -177,6 +201,42 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+        }
+
+        .orvex-page-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hi));
+            transform-origin: left center;
+            transform: scaleX(0);
+            opacity: 0;
+            z-index: 9998;
+            pointer-events: none;
+            transition: transform 0.28s var(--ease), opacity 0.22s ease;
+        }
+
+        .orvex-page-progress.is-running {
+            opacity: 1;
+            transform: scaleX(0.75);
+        }
+
+        .orvex-page-progress.is-done {
+            opacity: 0;
+            transform: scaleX(1);
+        }
+
+        @keyframes orvexMainEnter {
+            from {
+                opacity: 0;
+                transform: translate3d(var(--enter-x, 0px), var(--enter-y, 10px), 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
         }
 
         a {
@@ -306,6 +366,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
         }
 
         .tnav {
+            position: relative;
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -315,7 +376,37 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             border: 1px solid var(--g-line);
         }
 
+        .tnav__pill {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 0;
+            border-radius: var(--r-md);
+            background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+            box-shadow:
+                0 4px 14px rgba(243, 122, 31, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            will-change: transform, width;
+            transition:
+                transform 0.36s cubic-bezier(0.32, 1.18, 0.56, 1),
+                width 0.36s cubic-bezier(0.32, 1.18, 0.56, 1),
+                opacity 0.2s ease;
+        }
+
+        .tnav__pill.is-ready {
+            opacity: 1;
+        }
+
+        .tnav__pill.is-instant {
+            transition: none !important;
+        }
+
         .tnav__item {
+            position: relative;
+            z-index: 2;
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -326,7 +417,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             font-weight: 500;
             color: var(--g-muted);
             white-space: nowrap;
-            transition: background-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+            transition: background-color 0.2s var(--ease), color 0.24s var(--ease), transform 0.2s var(--ease);
         }
 
         .tnav__item:hover {
@@ -334,11 +425,18 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             background-color: var(--g-fill);
         }
 
-        .tnav__item.is-active {
+        .tnav.has-pill .tnav__item.is-active:hover {
+            background-color: transparent;
+        }
+
+        .tnav:not(.has-pill) .tnav__item.is-active {
             background-color: var(--accent);
+            box-shadow: 0 4px 14px rgba(243, 122, 31, 0.35);
+        }
+
+        .tnav__item.is-active {
             color: var(--accent-ink);
             font-weight: 700;
-            box-shadow: 0 4px 14px rgba(243, 122, 31, 0.35);
         }
 
         .tnav__dot {
@@ -353,6 +451,8 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
         }
 
         .tnav__new {
+            position: relative;
+            z-index: 2;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -384,13 +484,21 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             background-color: var(--panel);
             color: var(--ink);
             box-shadow: inset 0 1px 0 var(--top-light), inset 0 0 0 1px var(--line-2), var(--shadow);
-            display: none;
+            display: grid;
+            gap: 4px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-6px) scale(0.98);
+            transition: opacity 0.2s var(--ease), transform 0.22s var(--ease), visibility 0.2s;
             z-index: 60;
         }
 
         .quick-pop.is-open {
-            display: grid;
-            gap: 4px;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
         }
 
         .quick-pop__label {
@@ -533,6 +641,13 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             max-width: var(--max);
             margin: 0 auto;
             padding: 20px var(--pad) 40px;
+            animation: orvexMainEnter 0.34s var(--ease) both;
+        }
+
+        .orvex-main.is-leaving {
+            opacity: 0;
+            transform: translate3d(var(--leave-x, 0px), var(--leave-y, -6px), 0);
+            transition: opacity 0.2s var(--ease), transform 0.22s var(--ease);
         }
 
         /* Mobile Drawer Sidebar (Preserving toggleSidebar()) */
@@ -834,14 +949,20 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             z-index: 120;
             background: rgba(5, 14, 24, 0.62);
             backdrop-filter: blur(8px);
-            display: none;
+            display: flex;
             align-items: flex-start;
             justify-content: center;
             padding: min(12vh, 96px) 16px 24px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.22s var(--ease), visibility 0.22s;
         }
 
         .orvex-modal-backdrop.is-open {
-            display: flex;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
         }
 
         .finder {
@@ -851,6 +972,12 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             color: var(--ink);
             box-shadow: inset 0 1px 0 var(--top-light), inset 0 0 0 1px var(--line-2), 0 30px 70px rgba(0, 0, 0, 0.45);
             overflow: hidden;
+            transform: translateY(-8px) scale(0.98);
+            transition: transform 0.26s var(--ease);
+        }
+
+        .orvex-modal-backdrop.is-open .finder {
+            transform: translateY(0) scale(1);
         }
 
         .finder__head {
@@ -1000,7 +1127,37 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 gap: 4px;
             }
 
+            .tg-bottom-nav__pill {
+                position: absolute;
+                top: 6px;
+                bottom: 6px;
+                left: 0;
+                border-radius: 999px;
+                background: linear-gradient(135deg, var(--accent-hi), var(--accent));
+                box-shadow:
+                    0 6px 18px rgba(243, 122, 31, 0.38),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+                pointer-events: none;
+                z-index: 1;
+                opacity: 0;
+                will-change: transform, width;
+                transition:
+                    transform 0.38s cubic-bezier(0.32, 1.18, 0.56, 1),
+                    width 0.38s cubic-bezier(0.32, 1.18, 0.56, 1),
+                    opacity 0.2s ease;
+            }
+
+            .tg-bottom-nav__pill.is-ready {
+                opacity: 1;
+            }
+
+            .tg-bottom-nav__pill.is-instant {
+                transition: none !important;
+            }
+
             .tg-bottom-nav__item {
+                position: relative;
+                z-index: 2;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -1013,11 +1170,13 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 font-size: 10.5px;
                 font-weight: 600;
                 letter-spacing: 0.01em;
-                transition: background-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+                -webkit-tap-highlight-color: transparent;
+                transition: color 0.26s var(--ease), transform 0.22s var(--ease);
             }
 
             .tg-bottom-nav__item i {
                 font-size: 15px;
+                transition: transform 0.32s cubic-bezier(0.32, 1.18, 0.56, 1);
             }
 
             .tg-bottom-nav__item span {
@@ -1028,14 +1187,21 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             }
 
             .tg-bottom-nav__item:active {
-                transform: scale(0.95);
+                transform: scale(0.94);
+            }
+
+            .tg-bottom-nav:not(.has-pill) .tg-bottom-nav__item.is-active {
+                background-color: var(--accent);
+                box-shadow: 0 4px 14px rgba(243, 122, 31, 0.35);
             }
 
             .tg-bottom-nav__item.is-active {
-                background-color: var(--accent);
                 color: var(--accent-ink);
                 font-weight: 700;
-                box-shadow: 0 4px 14px rgba(243, 122, 31, 0.35);
+            }
+
+            .tg-bottom-nav__item.is-active i {
+                transform: translateY(-1px) scale(1.1);
             }
         }
 
@@ -1047,6 +1213,10 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
         }
 
         @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto !important;
+            }
+
             *,
             *::before,
             *::after {
@@ -1058,6 +1228,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
 </head>
 
 <body>
+    <div class="orvex-page-progress" id="orvex-page-progress" aria-hidden="true"></div>
     <a href="#main-content" class="skip">Lewati ke Konten Utama</a>
 
     <!-- Mobile Navigation Sidebar (Preserving toggleSidebar() and IDs) -->
@@ -1139,20 +1310,21 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
 
                 <!-- Center Pill Navigation -->
                 <div class="tnav-wrap">
-                    <nav class="tnav" aria-label="Navigasi panel admin">
-                        <a href="<?= base_url('admin/dashboard') ?>" class="tnav__item <?= (url_is('admin/dashboard') ? 'is-active' : '') ?>">
+                    <nav class="tnav" id="tnav-bar" aria-label="Navigasi panel admin">
+                        <span class="tnav__pill" id="tnav-pill" aria-hidden="true"></span>
+                        <a href="<?= base_url('admin/dashboard') ?>" data-nav-index="0" <?= (url_is('admin/dashboard*') ? 'data-initial-active="true"' : '') ?> class="tnav__item <?= (url_is('admin/dashboard*') ? 'is-active' : '') ?>">
                             <i class="fa-solid fa-gauge-high"></i>
                             <span>Dasbor</span>
                         </a>
-                        <a href="<?= base_url('admin/portfolio') ?>" class="tnav__item <?= (url_is('admin/portfolio*') ? 'is-active' : '') ?>">
+                        <a href="<?= base_url('admin/portfolio') ?>" data-nav-index="1" <?= (url_is('admin/portfolio*') ? 'data-initial-active="true"' : '') ?> class="tnav__item <?= (url_is('admin/portfolio*') ? 'is-active' : '') ?>">
                             <span class="tnav__dot" aria-hidden="true"></span>
                             <span>Portofolio</span>
                         </a>
-                        <a href="<?= base_url('admin/settings') ?>" class="tnav__item <?= (url_is('admin/settings*') ? 'is-active' : '') ?>">
+                        <a href="<?= base_url('admin/settings') ?>" data-nav-index="2" <?= (url_is('admin/settings*') ? 'data-initial-active="true"' : '') ?> class="tnav__item <?= (url_is('admin/settings*') ? 'is-active' : '') ?>">
                             <i class="fa-solid fa-gear"></i>
                             <span>Pengaturan Web</span>
                         </a>
-                        <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" class="tnav__item">
+                        <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" data-nav-index="3" class="tnav__item">
                             <i class="fa-solid fa-globe"></i>
                             <span>Etalase Publik</span>
                         </a>
@@ -1213,24 +1385,25 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
         </main>
 
         <!-- Telegram-Style Floating Rounded Bottom Navigation Bar (Mobile / Tablet) -->
-        <nav class="tg-bottom-nav" aria-label="Menu mengambang bawah">
-            <a href="<?= base_url('admin/dashboard') ?>" class="tg-bottom-nav__item <?= (url_is('admin/dashboard') ? 'is-active' : '') ?>">
+        <nav class="tg-bottom-nav" id="tg-bottom-nav" aria-label="Menu mengambang bawah">
+            <span class="tg-bottom-nav__pill" id="tg-bottom-pill" aria-hidden="true"></span>
+            <a href="<?= base_url('admin/dashboard') ?>" data-nav-index="0" <?= (url_is('admin/dashboard*') ? 'data-initial-active="true"' : '') ?> class="tg-bottom-nav__item <?= (url_is('admin/dashboard*') ? 'is-active' : '') ?>">
                 <i class="fa-solid fa-gauge-high"></i>
                 <span>Dasbor</span>
             </a>
-            <a href="<?= base_url('admin/portfolio') ?>" class="tg-bottom-nav__item <?= (url_is('admin/portfolio') || url_is('admin/portfolio/edit*') ? 'is-active' : '') ?>">
+            <a href="<?= base_url('admin/portfolio') ?>" data-nav-index="1" <?= ((url_is('admin/portfolio') || url_is('admin/portfolio/edit*')) ? 'data-initial-active="true"' : '') ?> class="tg-bottom-nav__item <?= ((url_is('admin/portfolio') || url_is('admin/portfolio/edit*')) ? 'is-active' : '') ?>">
                 <i class="fa-solid fa-layer-group"></i>
                 <span>Portofolio</span>
             </a>
-            <a href="<?= base_url('admin/portfolio/create') ?>" class="tg-bottom-nav__item <?= (url_is('admin/portfolio/create') ? 'is-active' : '') ?>">
+            <a href="<?= base_url('admin/portfolio/create') ?>" data-nav-index="2" <?= (url_is('admin/portfolio/create*') ? 'data-initial-active="true"' : '') ?> class="tg-bottom-nav__item <?= (url_is('admin/portfolio/create*') ? 'is-active' : '') ?>">
                 <i class="fa-solid fa-circle-plus"></i>
                 <span>Tambah</span>
             </a>
-            <a href="<?= base_url('admin/settings') ?>" class="tg-bottom-nav__item <?= (url_is('admin/settings*') ? 'is-active' : '') ?>">
+            <a href="<?= base_url('admin/settings') ?>" data-nav-index="3" <?= (url_is('admin/settings*') ? 'data-initial-active="true"' : '') ?> class="tg-bottom-nav__item <?= (url_is('admin/settings*') ? 'is-active' : '') ?>">
                 <i class="fa-solid fa-sliders"></i>
                 <span>Setelan</span>
             </a>
-            <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" class="tg-bottom-nav__item">
+            <a href="<?= base_url() ?>" target="_blank" rel="noopener noreferrer" data-nav-index="4" class="tg-bottom-nav__item">
                 <i class="fa-solid fa-globe"></i>
                 <span>Etalase</span>
             </a>
@@ -1500,6 +1673,277 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                     toggleQuickPop();
                 } else if (e.key === '?') {
                     openShortcuts();
+                }
+            });
+
+            /* Sliding Pill Navigation & Smooth Page/Scroll Transitions */
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mainContent = document.getElementById('main-content');
+            const progressEl = document.getElementById('orvex-page-progress');
+            let isNavigating = false;
+
+            function createSlidingPill(navEl, pillEl, itemSelector) {
+                if (!navEl || !pillEl) return null;
+                const items = Array.from(navEl.querySelectorAll(itemSelector));
+
+                function moveTo(targetEl, instant) {
+                    if (!targetEl || targetEl.offsetWidth <= 0) return;
+
+                    navEl.classList.add('has-pill');
+                    if (instant || prefersReducedMotion) {
+                        pillEl.classList.add('is-instant');
+                    } else {
+                        pillEl.classList.remove('is-instant');
+                    }
+
+                    pillEl.style.width = targetEl.offsetWidth + 'px';
+                    pillEl.style.transform = `translate3d(${targetEl.offsetLeft}px, 0, 0)`;
+                    pillEl.classList.add('is-ready');
+
+                    if (instant || prefersReducedMotion) {
+                        void pillEl.offsetWidth;
+                        requestAnimationFrame(() => {
+                            pillEl.classList.remove('is-instant');
+                        });
+                    }
+                }
+
+                function getActiveIndex() {
+                    return items.findIndex((el) => el.classList.contains('is-active'));
+                }
+
+                function resetToInitial(instant) {
+                    const initial = items.find((el) => el.dataset.initialActive === 'true') || items.find((el) => el.classList.contains('is-active'));
+                    items.forEach((el) => el.classList.toggle('is-active', el === initial));
+                    if (initial) {
+                        moveTo(initial, instant);
+                    }
+                }
+
+                const syncActive = () => {
+                    const active = items.find((el) => el.classList.contains('is-active'));
+                    if (active) {
+                        moveTo(active, true);
+                    }
+                };
+
+                if (typeof ResizeObserver !== 'undefined') {
+                    const ro = new ResizeObserver(syncActive);
+                    ro.observe(navEl);
+                }
+                window.addEventListener('resize', syncActive);
+
+                return { moveTo, getActiveIndex, items, resetToInitial };
+            }
+
+            const bottomNav = createSlidingPill(
+                document.getElementById('tg-bottom-nav'),
+                document.getElementById('tg-bottom-pill'),
+                '.tg-bottom-nav__item'
+            );
+            const topNav = createSlidingPill(
+                document.getElementById('tnav-bar'),
+                document.getElementById('tnav-pill'),
+                '.tnav__item'
+            );
+
+            function consumeNavState() {
+                try {
+                    const raw = sessionStorage.getItem('orvex_nav_transition');
+                    sessionStorage.removeItem('orvex_nav_transition');
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed.ts !== 'number' || (Date.now() - parsed.ts) > 3000) {
+                        return null;
+                    }
+                    return parsed;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            const savedNavState = consumeNavState();
+
+            function initArrivalPill(navCtrl, sourceKey, fromIdxKey) {
+                if (!navCtrl) return;
+                const curIdx = navCtrl.getActiveIndex();
+                if (curIdx < 0) return;
+
+                const fromIdx = savedNavState ? savedNavState[fromIdxKey] : null;
+                if (
+                    !prefersReducedMotion &&
+                    savedNavState &&
+                    savedNavState.source !== sourceKey &&
+                    Number.isInteger(fromIdx) &&
+                    fromIdx >= 0 &&
+                    fromIdx !== curIdx &&
+                    navCtrl.items[fromIdx] &&
+                    navCtrl.items[fromIdx].offsetWidth > 0
+                ) {
+                    navCtrl.moveTo(navCtrl.items[fromIdx], true);
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            navCtrl.moveTo(navCtrl.items[curIdx], false);
+                        });
+                    });
+                } else {
+                    navCtrl.moveTo(navCtrl.items[curIdx], true);
+                }
+            }
+
+            initArrivalPill(bottomNav, 'bottom', 'fromBottomIdx');
+            initArrivalPill(topNav, 'top', 'fromTopIdx');
+
+            function normalizeUrlKey(href) {
+                try {
+                    const u = new URL(href, window.location.href);
+                    return u.pathname.replace(/\/+$/, '') + u.search;
+                } catch (e) {
+                    return href;
+                }
+            }
+
+            function startSmoothNavigate(href, transitionData, delayMs) {
+                if (isNavigating) return;
+                isNavigating = true;
+
+                try {
+                    sessionStorage.setItem('orvex_nav_transition', JSON.stringify(transitionData));
+                } catch (e) {}
+
+                if (progressEl) {
+                    progressEl.classList.remove('is-done');
+                    progressEl.classList.add('is-running');
+                }
+
+                if (mainContent && !prefersReducedMotion) {
+                    const dir = transitionData.dir || 0;
+                    const leaveX = dir > 0 ? '-14px' : (dir < 0 ? '14px' : '0px');
+                    const leaveY = dir === 0 ? '-6px' : '0px';
+                    mainContent.style.setProperty('--leave-x', leaveX);
+                    mainContent.style.setProperty('--leave-y', leaveY);
+                    mainContent.classList.add('is-leaving');
+                }
+
+                const wait = prefersReducedMotion ? 0 : delayMs;
+                setTimeout(() => {
+                    window.location.href = href;
+                }, wait);
+            }
+
+            function bindNavItemClicks(navCtrl, sourceKey) {
+                if (!navCtrl) return;
+                navCtrl.items.forEach((link, idx) => {
+                    link.addEventListener('click', (e) => {
+                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                        if (link.target === '_blank' || link.hasAttribute('download')) return;
+
+                        let targetUrl;
+                        try {
+                            targetUrl = new URL(link.href, window.location.href);
+                        } catch (err) {
+                            return;
+                        }
+                        if (targetUrl.origin !== window.location.origin) return;
+
+                        const currentKey = normalizeUrlKey(window.location.href);
+                        const targetKey = normalizeUrlKey(targetUrl.href);
+
+                        if (currentKey === targetKey) {
+                            e.preventDefault();
+                            navCtrl.items.forEach((el) => el.classList.toggle('is-active', el === link));
+                            navCtrl.moveTo(link, false);
+                            window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+                            return;
+                        }
+
+                        e.preventDefault();
+                        const fromIdx = navCtrl.getActiveIndex();
+                        const dir = (fromIdx >= 0 && idx !== fromIdx) ? (idx > fromIdx ? 1 : -1) : 0;
+
+                        navCtrl.items.forEach((el) => el.classList.toggle('is-active', el === link));
+                        navCtrl.moveTo(link, false);
+
+                        startSmoothNavigate(targetUrl.href, {
+                            source: sourceKey,
+                            fromBottomIdx: bottomNav ? bottomNav.getActiveIndex() : -1,
+                            toBottomIdx: sourceKey === 'bottom' ? idx : -1,
+                            fromTopIdx: topNav ? topNav.getActiveIndex() : -1,
+                            toTopIdx: sourceKey === 'top' ? idx : -1,
+                            dir,
+                            ts: Date.now()
+                        }, 210);
+                    });
+                });
+            }
+
+            bindNavItemClicks(bottomNav, 'bottom');
+            bindNavItemClicks(topNav, 'top');
+
+            /* Smooth transitions for internal admin links & in-page anchors */
+            document.addEventListener('click', (e) => {
+                const anchor = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+                if (!anchor) return;
+                if (anchor.classList.contains('tg-bottom-nav__item') || anchor.classList.contains('tnav__item')) return;
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+
+                const rawHref = anchor.getAttribute('href') || '';
+                if (rawHref === '' || rawHref.startsWith('javascript:')) return;
+
+                if (rawHref.startsWith('#')) {
+                    if (rawHref.length > 1) {
+                        const targetEl = document.querySelector(rawHref);
+                        if (targetEl) {
+                            e.preventDefault();
+                            const top = targetEl.getBoundingClientRect().top + window.scrollY - 80;
+                            window.scrollTo({
+                                top: Math.max(0, top),
+                                behavior: prefersReducedMotion ? 'auto' : 'smooth'
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                let targetUrl;
+                try {
+                    targetUrl = new URL(anchor.href, window.location.href);
+                } catch (err) {
+                    return;
+                }
+                if (targetUrl.origin !== window.location.origin) return;
+                if (/\/(delete|toggle|logout|google)(\/|$)/i.test(targetUrl.pathname)) return;
+                if (normalizeUrlKey(targetUrl.href) === normalizeUrlKey(window.location.href)) return;
+
+                e.preventDefault();
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && !sidebar.classList.contains('-translate-x-full') && typeof toggleSidebar === 'function') {
+                    toggleSidebar();
+                }
+
+                startSmoothNavigate(targetUrl.href, {
+                    source: 'link',
+                    fromBottomIdx: bottomNav ? bottomNav.getActiveIndex() : -1,
+                    fromTopIdx: topNav ? topNav.getActiveIndex() : -1,
+                    dir: 0,
+                    ts: Date.now()
+                }, 150);
+            });
+
+            window.addEventListener('pageshow', () => {
+                isNavigating = false;
+                if (mainContent) {
+                    mainContent.classList.remove('is-leaving');
+                }
+                if (progressEl) {
+                    progressEl.classList.remove('is-running', 'is-done');
+                }
+                if (bottomNav) {
+                    bottomNav.resetToInitial(true);
+                }
+                if (topNav) {
+                    topNav.resetToInitial(true);
                 }
             });
         })();
