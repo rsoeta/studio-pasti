@@ -82,6 +82,36 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
             background-color: var(--c-night);
         }
 
+        html.lenis,
+        html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .reveal-word-mask {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            padding: 0.08em 0.04em 0.16em 0;
+            margin: -0.08em -0.04em -0.16em 0;
+        }
+
+        .reveal-word {
+            display: inline-block;
+            will-change: transform, opacity;
+        }
+
         @keyframes landingEnter {
             from {
                 opacity: 0;
@@ -2096,10 +2126,12 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
             /* 3. Smooth Scroll (Lenis + Anchor Links) */
             if (!prefersReducedMotion && typeof Lenis !== 'undefined') {
                 lenis = new Lenis({
-                    duration: 1.05,
+                    duration: 1.15,
                     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-                    smoothWheel: true
+                    smoothWheel: true,
+                    touchMultiplier: 1.5
                 });
+                window.siteLenis = lenis;
 
                 if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
                     gsap.registerPlugin(ScrollTrigger);
@@ -2210,13 +2242,81 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                         });
                     }
 
-                    // Staggered Reveal for Titles and Portfolio Cards
-                    document.querySelectorAll('[data-reveal]').forEach((el) => {
-                        gsap.from(el, {
-                            y: 36,
+                    // Word-by-Word Reveal for Titles (GSAP + ScrollTrigger)
+                    function splitWordsForReveal(el) {
+                        if (!el) return [];
+                        if (el.dataset.wordsSplit === 'true') {
+                            return Array.from(el.querySelectorAll('.reveal-word'));
+                        }
+
+                        const plainText = (el.textContent || '').replace(/\s+/g, ' ').trim();
+                        if (plainText && !el.getAttribute('aria-label')) {
+                            el.setAttribute('aria-label', plainText);
+                        }
+
+                        const skipTags = new Set(['SCRIPT', 'STYLE', 'SVG', 'I', 'BUTTON']);
+                        function wrapTextNodes(node) {
+                            const children = Array.from(node.childNodes);
+                            children.forEach((child) => {
+                                if (child.nodeType === Node.TEXT_NODE) {
+                                    const raw = child.nodeValue || '';
+                                    if (!raw.trim()) return;
+                                    const frag = document.createDocumentFragment();
+                                    raw.split(/(\s+)/).forEach((part) => {
+                                        if (!part) return;
+                                        if (/^\s+$/.test(part)) {
+                                            frag.appendChild(document.createTextNode(part));
+                                        } else {
+                                            const mask = document.createElement('span');
+                                            mask.className = 'reveal-word-mask';
+                                            mask.setAttribute('aria-hidden', 'true');
+                                            const word = document.createElement('span');
+                                            word.className = 'reveal-word';
+                                            word.textContent = part;
+                                            mask.appendChild(word);
+                                            frag.appendChild(mask);
+                                        }
+                                    });
+                                    child.replaceWith(frag);
+                                } else if (child.nodeType === Node.ELEMENT_NODE && !skipTags.has(child.tagName)) {
+                                    wrapTextNodes(child);
+                                }
+                            });
+                        }
+
+                        wrapTextNodes(el);
+                        el.dataset.wordsSplit = 'true';
+                        return Array.from(el.querySelectorAll('.reveal-word'));
+                    }
+
+                    const heroTitle = document.getElementById('hero-title');
+                    if (heroTitle) {
+                        const heroTitleWords = splitWordsForReveal(heroTitle);
+                        if (heroTitleWords.length > 0) {
+                            gsap.from(heroTitleWords, {
+                                yPercent: 115,
+                                opacity: 0,
+                                rotateZ: 1.5,
+                                duration: 0.85,
+                                stagger: 0.06,
+                                delay: 0.12,
+                                ease: 'power3.out',
+                                clearProps: 'transform,opacity'
+                            });
+                        }
+                    }
+
+                    document.querySelectorAll('[data-reveal], .lb__card h3').forEach((el) => {
+                        const words = splitWordsForReveal(el);
+                        if (words.length === 0) return;
+                        gsap.from(words, {
+                            yPercent: 115,
                             opacity: 0,
-                            duration: 0.9,
+                            rotateZ: 1.5,
+                            duration: 0.85,
+                            stagger: 0.075,
                             ease: 'power3.out',
+                            clearProps: 'transform,opacity',
                             scrollTrigger: {
                                 trigger: el,
                                 start: 'top 86%',
@@ -2224,6 +2324,10 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                             }
                         });
                     });
+
+                    if (document.fonts && document.fonts.ready) {
+                        document.fonts.ready.then(() => ScrollTrigger.refresh());
+                    }
 
                     const cards = document.querySelectorAll('.app-card');
                     if (cards.length > 0) {

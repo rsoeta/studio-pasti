@@ -189,6 +189,36 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             scroll-padding-top: 84px;
         }
 
+        html.lenis,
+        html.lenis body {
+            height: auto;
+        }
+
+        html.lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .reveal-word-mask {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            padding: 0.06em 0.03em 0.14em 0;
+            margin: -0.06em -0.03em -0.14em 0;
+        }
+
+        .reveal-word {
+            display: inline-block;
+            will-change: transform, opacity;
+        }
+
         html,
         body {
             margin: 0;
@@ -1234,7 +1264,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
     <!-- Mobile Navigation Sidebar (Preserving toggleSidebar() and IDs) -->
     <div id="sidebar-overlay" onclick="toggleSidebar()" class="sidebar-overlay hidden opacity-0"></div>
 
-    <aside id="sidebar" class="mobile-sidebar -translate-x-full" aria-label="Menu navigasi seluler">
+    <aside id="sidebar" class="mobile-sidebar -translate-x-full" data-lenis-prevent aria-label="Menu navigasi seluler">
         <div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--g-line);">
                 <div class="brand">
@@ -1419,7 +1449,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 <input type="text" id="cmd-input" placeholder="Lompat ke menu atau aksi cepat..." autocomplete="off">
                 <button type="button" class="orvex-btn" id="cmd-close-btn" style="min-height:34px;padding:0 10px;font-size:11.5px;">Esc</button>
             </div>
-            <div class="finder__list" id="cmd-list"></div>
+            <div class="finder__list" id="cmd-list" data-lenis-prevent></div>
             <div class="finder__foot">
                 <span><i class="fa-solid fa-circle-info"></i> Navigasi cepat Panel Admin Studio PASTI</span>
                 <span>Enter buka &bull; Esc tutup</span>
@@ -1434,7 +1464,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 <strong id="shortcuts-title" style="font-size:15px;">Pintasan Keyboard</strong>
                 <button type="button" class="orvex-btn" id="shortcuts-close-btn" style="min-height:34px;padding:0 10px;font-size:11.5px;">Tutup</button>
             </div>
-            <div class="finder__list" style="padding:14px 18px;gap:10px;">
+            <div class="finder__list" data-lenis-prevent style="padding:14px 18px;gap:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span>Buka Command Palette</span>
                     <span class="badge badge--info">Ctrl+K / /</span>
@@ -1459,6 +1489,9 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
     <script>
         (function () {
             const shell = document.getElementById('orvex-shell');
@@ -1587,6 +1620,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 toggleQuickPop(false);
                 cmdBackdrop.classList.add('is-open');
                 setShellInert(true);
+                if (window.orvexLenis) window.orvexLenis.stop();
                 renderCommands('');
                 if (cmdInput) {
                     cmdInput.value = '';
@@ -1598,6 +1632,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 if (!cmdBackdrop) return;
                 cmdBackdrop.classList.remove('is-open');
                 setShellInert(false);
+                if (window.orvexLenis) window.orvexLenis.start();
             }
 
             function openShortcuts() {
@@ -1605,12 +1640,14 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 toggleQuickPop(false);
                 shortcutsBackdrop.classList.add('is-open');
                 setShellInert(true);
+                if (window.orvexLenis) window.orvexLenis.stop();
             }
 
             function closeShortcuts() {
                 if (!shortcutsBackdrop) return;
                 shortcutsBackdrop.classList.remove('is-open');
                 setShellInert(false);
+                if (window.orvexLenis) window.orvexLenis.start();
             }
 
             if (openCmdBtn) openCmdBtn.addEventListener('click', openCmd);
@@ -1676,11 +1713,132 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                 }
             });
 
-            /* Sliding Pill Navigation & Smooth Page/Scroll Transitions */
+            /* Sliding Pill Navigation, Lenis Smooth Scroll & GSAP Word Reveals */
             const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const mainContent = document.getElementById('main-content');
             const progressEl = document.getElementById('orvex-page-progress');
             let isNavigating = false;
+            let orvexLenis = null;
+
+            if (!prefersReducedMotion && typeof Lenis !== 'undefined') {
+                orvexLenis = new Lenis({
+                    duration: 1.05,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    smoothWheel: true,
+                    touchMultiplier: 1.4
+                });
+                window.orvexLenis = orvexLenis;
+
+                if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+                    gsap.registerPlugin(ScrollTrigger);
+                    orvexLenis.on('scroll', ScrollTrigger.update);
+                    gsap.ticker.add((time) => {
+                        orvexLenis.raf(time * 1000);
+                    });
+                    gsap.ticker.lagSmoothing(0);
+                } else {
+                    function orvexRaf(time) {
+                        orvexLenis.raf(time);
+                        requestAnimationFrame(orvexRaf);
+                    }
+                    requestAnimationFrame(orvexRaf);
+                }
+            }
+
+            function smoothScrollTo(targetOrY, offset = 0) {
+                if (orvexLenis) {
+                    orvexLenis.scrollTo(targetOrY, { offset });
+                    return;
+                }
+                let top = 0;
+                if (typeof targetOrY === 'number') {
+                    top = targetOrY;
+                } else if (targetOrY && targetOrY.getBoundingClientRect) {
+                    top = targetOrY.getBoundingClientRect().top + window.scrollY + offset;
+                }
+                window.scrollTo({
+                    top: Math.max(0, top),
+                    behavior: prefersReducedMotion ? 'auto' : 'smooth'
+                });
+            }
+
+            function splitWordsForReveal(el) {
+                if (!el) return [];
+                if (el.dataset.wordsSplit === 'true') {
+                    return Array.from(el.querySelectorAll('.reveal-word'));
+                }
+
+                const plainText = (el.textContent || '').replace(/\s+/g, ' ').trim();
+                if (plainText && !el.getAttribute('aria-label')) {
+                    el.setAttribute('aria-label', plainText);
+                }
+
+                const skipTags = new Set(['SCRIPT', 'STYLE', 'SVG', 'I', 'BUTTON']);
+                function wrapTextNodes(node) {
+                    const children = Array.from(node.childNodes);
+                    children.forEach((child) => {
+                        if (child.nodeType === Node.ELEMENT_NODE) {
+                            if (skipTags.has(child.tagName) || child.classList.contains('badge') || child.hasAttribute('data-no-split')) {
+                                return;
+                            }
+                            wrapTextNodes(child);
+                        } else if (child.nodeType === Node.TEXT_NODE) {
+                            const raw = child.nodeValue || '';
+                            if (!raw.trim()) return;
+                            const frag = document.createDocumentFragment();
+                            raw.split(/(\s+)/).forEach((part) => {
+                                if (!part) return;
+                                if (/^\s+$/.test(part)) {
+                                    frag.appendChild(document.createTextNode(part));
+                                } else {
+                                    const mask = document.createElement('span');
+                                    mask.className = 'reveal-word-mask';
+                                    mask.setAttribute('aria-hidden', 'true');
+                                    const word = document.createElement('span');
+                                    word.className = 'reveal-word';
+                                    word.textContent = part;
+                                    mask.appendChild(word);
+                                    frag.appendChild(mask);
+                                }
+                            });
+                            child.replaceWith(frag);
+                        }
+                    });
+                }
+
+                wrapTextNodes(el);
+                el.dataset.wordsSplit = 'true';
+                return Array.from(el.querySelectorAll('.reveal-word'));
+            }
+
+            if (!prefersReducedMotion && typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+                const revealSelectors = '.phead__title, .hero-greeting-title, .orvex-card h2.ctitle, section h2.ctitle, [data-reveal-words]';
+                document.querySelectorAll(revealSelectors).forEach((el) => {
+                    if (el.id === 'live-preview-brand' || el.id === 'drawer-title' || el.hasAttribute('data-no-split')) {
+                        return;
+                    }
+                    const words = splitWordsForReveal(el);
+                    if (words.length === 0) return;
+                    gsap.from(words, {
+                        yPercent: 112,
+                        opacity: 0,
+                        duration: 0.72,
+                        stagger: 0.055,
+                        ease: 'power3.out',
+                        clearProps: 'transform,opacity',
+                        scrollTrigger: {
+                            trigger: el,
+                            start: 'top 92%',
+                            once: true
+                        }
+                    });
+                });
+
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(() => ScrollTrigger.refresh());
+                }
+            }
 
             function createSlidingPill(navEl, pillEl, itemSelector) {
                 if (!navEl || !pillEl) return null;
@@ -1853,7 +2011,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                             e.preventDefault();
                             navCtrl.items.forEach((el) => el.classList.toggle('is-active', el === link));
                             navCtrl.moveTo(link, false);
-                            window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+                            smoothScrollTo(0);
                             return;
                         }
 
@@ -1896,11 +2054,7 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
                         const targetEl = document.querySelector(rawHref);
                         if (targetEl) {
                             e.preventDefault();
-                            const top = targetEl.getBoundingClientRect().top + window.scrollY - 80;
-                            window.scrollTo({
-                                top: Math.max(0, top),
-                                behavior: prefersReducedMotion ? 'auto' : 'smooth'
-                            });
+                            smoothScrollTo(targetEl, -80);
                         }
                     }
                     return;
@@ -1933,6 +2087,9 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
 
             window.addEventListener('pageshow', () => {
                 isNavigating = false;
+                if (window.orvexLenis) {
+                    window.orvexLenis.start();
+                }
                 if (mainContent) {
                     mainContent.classList.remove('is-leaving');
                 }
@@ -1957,10 +2114,12 @@ $layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
+                if (window.orvexLenis) window.orvexLenis.stop();
                 setTimeout(() => overlay.classList.add('opacity-100'), 10);
             } else {
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.remove('opacity-100');
+                if (window.orvexLenis) window.orvexLenis.start();
                 setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
