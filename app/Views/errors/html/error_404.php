@@ -1,6 +1,8 @@
 <?php
 $homeUrl = function_exists('base_url') ? base_url() : '/';
-$iconUrl = function_exists('base_url') ? base_url('PASTI - Icon.png') : '/PASTI - Icon.png';
+$iconUrl = class_exists(\App\Models\WebSettingModel::class)
+    ? \App\Models\WebSettingModel::getLogoUrl()
+    : (function_exists('base_url') ? base_url('PASTI - Icon.png') : '/PASTI - Icon.png');
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -120,7 +120,9 @@ fi
 echo "==> [4/6] Memastikan direktori uploads & writable tersedia..."
 mkdir -p \
     "$TARGET_DIR/uploads/portfolios" \
+    "$TARGET_DIR/uploads/branding" \
     "$TARGET_DIR/public/uploads/portfolios" \
+    "$TARGET_DIR/public/uploads/branding" \
     "$TARGET_DIR/writable/cache" \
     "$TARGET_DIR/writable/logs" \
     "$TARGET_DIR/writable/session" \

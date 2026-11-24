@@ -136,7 +136,91 @@
         min-height: 40px;
         background-color: var(--card-2);
     }
+
+    .web-logo-panel {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .web-logo-stage {
+        position: relative;
+        width: 112px;
+        height: 112px;
+        flex-shrink: 0;
+        border-radius: var(--r-lg);
+        border: 2px dashed var(--line-2);
+        background-color: var(--panel);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: border-color 0.2s ease, transform 0.2s var(--ease);
+    }
+
+    .web-logo-stage:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+    }
+
+    .web-logo-stage img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+
+    .web-logo-meta {
+        flex: 1 1 240px;
+        min-width: 0;
+    }
+
+    .web-logo-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .summary-brand-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .summary-logo-box {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(168, 74, 8, 0.16);
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .summary-logo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
 </style>
+
+<?php
+$logoUrl       = $logoUrl ?? \App\Models\WebSettingModel::getLogoUrl($settings ?? null);
+$hasCustomLogo = $hasCustomLogo ?? \App\Models\WebSettingModel::hasCustomLogo($settings ?? null);
+?>
 
 <div class="phead">
     <div>
@@ -158,9 +242,14 @@
             <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--peach-muted);">
                 Ringkasan Etalase Aktif
             </div>
-            <h2 style="margin:6px 0 0;font-size:18px;font-weight:700;" id="live-preview-brand">
-                <?= esc($settings['nama_web']) ?>
-            </h2>
+            <div class="summary-brand-row">
+                <div class="summary-logo-box">
+                    <img id="live-preview-logo-summary" src="<?= esc($logoUrl) ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
+                </div>
+                <h2 style="margin:0;font-size:18px;font-weight:700;min-width:0;overflow-wrap:anywhere;" id="live-preview-brand">
+                    <?= esc($settings['nama_web']) ?>
+                </h2>
+            </div>
             <p style="margin:8px 0 0;font-size:12.5px;color:var(--peach-muted);line-height:1.5;" id="live-preview-hero">
                 <?= esc($settings['teks_hero_judul']) ?>
             </p>
@@ -199,10 +288,48 @@
 
     <!-- Right Column: Configuration Form -->
     <div class="orvex-card">
-        <form action="<?= base_url('admin/settings/update') ?>" method="POST" class="settings-form-stack">
+        <form action="<?= base_url('admin/settings/update') ?>" method="POST" enctype="multipart/form-data" class="settings-form-stack">
             <?= csrf_field() ?>
 
             <input type="hidden" name="id" value="<?= $settings['id'] ?>">
+
+            <div class="web-logo-panel">
+                <div class="web-logo-stage" id="web-logo-stage" title="Klik untuk memilih file logo baru">
+                    <img id="preview-web-logo" src="<?= esc($logoUrl) ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
+                </div>
+
+                <div class="web-logo-meta">
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+                        <label for="logo-file-input" class="field-label" style="margin:0;">Logo Website</label>
+                        <span class="badge <?= $hasCustomLogo ? 'badge--good' : 'badge--info' ?>">
+                            <?= $hasCustomLogo ? 'Logo Kustom' : 'Logo Default' ?>
+                        </span>
+                    </div>
+                    <p style="margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.5;">
+                        Ditampilkan di Navbar, Hero Emblem, Footer, Favicon, dan Panel Admin. Format PNG, JPG, atau WebP (rasio 1:1 direkomendasikan, maks. 2MB).
+                    </p>
+
+                    <input type="file" id="logo-file-input" name="logo" accept="image/png,image/jpeg,image/webp" hidden>
+
+                    <div class="web-logo-actions">
+                        <label for="logo-file-input" class="orvex-btn" style="cursor:pointer;">
+                            <i class="fa-solid fa-image"></i> Pilih Logo Baru
+                        </label>
+                        <button type="button" id="cancel-logo-pick" class="orvex-btn" hidden>
+                            <i class="fa-solid fa-rotate-left"></i> Batal Pilih
+                        </button>
+                        <?php if ($hasCustomLogo): ?>
+                            <button type="button" onclick="confirmResetLogo()" class="orvex-btn orvex-btn--danger">
+                                <i class="fa-solid fa-trash-can"></i> Reset Default
+                            </button>
+                        <?php endif; ?>
+                    </div>
+
+                    <div id="logo-file-name" style="margin-top:8px;font-size:11.5px;color:var(--muted);">
+                        Belum ada file baru dipilih. Klik Simpan Konfigurasi setelah memilih logo.
+                    </div>
+                </div>
+            </div>
 
             <div class="settings-row-2">
                 <div>
@@ -243,6 +370,10 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Konfigurasi
                 </button>
             </div>
+        </form>
+
+        <form id="reset-logo-form" action="<?= base_url('admin/settings/logo/reset') ?>" method="POST" hidden>
+            <?= csrf_field() ?>
         </form>
     </div>
 </div>
@@ -435,7 +566,116 @@ $googleReady    = !empty($security['google_client_id']) && !empty($security['goo
                 heroPreview.textContent = heroInput.value || '';
             });
         }
+
+        /* Logo Upload Preview & Validation */
+        const logoStage = document.getElementById('web-logo-stage');
+        const logoInput = document.getElementById('logo-file-input');
+        const logoPreview = document.getElementById('preview-web-logo');
+        const logoSummaryPreview = document.getElementById('live-preview-logo-summary');
+        const logoCancelBtn = document.getElementById('cancel-logo-pick');
+        const logoFileName = document.getElementById('logo-file-name');
+        const originalLogoSrc = '<?= esc($logoUrl, 'js') ?>';
+        const defaultLogoHint = 'Belum ada file baru dipilih. Klik Simpan Konfigurasi setelah memilih logo.';
+        const allowedLogoTypes = ['image/png', 'image/jpeg', 'image/webp'];
+        const maxLogoBytes = 2 * 1024 * 1024;
+
+        function resetLogoSelection() {
+            if (logoInput) {
+                logoInput.value = '';
+            }
+            if (logoPreview) {
+                logoPreview.src = originalLogoSrc;
+            }
+            if (logoSummaryPreview) {
+                logoSummaryPreview.src = originalLogoSrc;
+            }
+            if (logoCancelBtn) {
+                logoCancelBtn.hidden = true;
+            }
+            if (logoFileName) {
+                logoFileName.textContent = defaultLogoHint;
+            }
+        }
+
+        if (logoStage && logoInput) {
+            logoStage.addEventListener('click', () => {
+                logoInput.click();
+            });
+        }
+
+        if (logoCancelBtn) {
+            logoCancelBtn.addEventListener('click', resetLogoSelection);
+        }
+
+        if (logoInput) {
+            logoInput.addEventListener('change', (event) => {
+                const file = event.target.files && event.target.files[0];
+                if (!file) {
+                    resetLogoSelection();
+                    return;
+                }
+
+                if (!allowedLogoTypes.includes(file.type)) {
+                    resetLogoSelection();
+                    Swal.fire({
+                        title: 'Format Tidak Didukung',
+                        text: 'Pilih file gambar berformat PNG, JPG, atau WebP.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tutup'
+                    });
+                    return;
+                }
+
+                if (file.size > maxLogoBytes) {
+                    resetLogoSelection();
+                    Swal.fire({
+                        title: 'Ukuran File Terlalu Besar',
+                        text: 'Ukuran file logo maksimal 2MB.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tutup'
+                    });
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function () {
+                    if (logoPreview) {
+                        logoPreview.src = reader.result;
+                    }
+                    if (logoSummaryPreview) {
+                        logoSummaryPreview.src = reader.result;
+                    }
+                    if (logoCancelBtn) {
+                        logoCancelBtn.hidden = false;
+                    }
+                    if (logoFileName) {
+                        const kb = Math.max(1, Math.round(file.size / 1024));
+                        logoFileName.textContent = 'File dipilih: ' + file.name + ' (' + kb + ' KB) — klik Simpan Konfigurasi untuk menerapkan.';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
     })();
+
+    function confirmResetLogo() {
+        Swal.fire({
+            title: 'Kembalikan ke Logo Default?',
+            text: 'Logo kustom saat ini akan dihapus dan diganti kembali dengan logo bawaan sistem.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Reset Default',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('reset-logo-form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    }
 
     <?php if (session()->getFlashdata('success')) : ?>
         Swal.fire({

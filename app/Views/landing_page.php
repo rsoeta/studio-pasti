@@ -1,3 +1,8 @@
+<?php
+$logoUrl      = \App\Models\WebSettingModel::getLogoUrl($settings ?? null);
+$logoMime     = \App\Models\WebSettingModel::getLogoMime($settings ?? null);
+$touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? null);
+?>
 <!DOCTYPE html>
 <html lang="id">
 
@@ -9,8 +14,8 @@
     <meta name="title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
     <meta name="description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
 
-    <link rel="icon" type="image/png" href="<?= base_url('PASTI - Icon.png') ?>">
-    <link rel="apple-touch-icon" href="<?= base_url('icons/icon-192x192.png') ?>">
+    <link rel="icon" type="<?= esc($logoMime) ?>" href="<?= esc($logoUrl) ?>">
+    <link rel="apple-touch-icon" href="<?= esc($touchIconUrl) ?>">
     <link rel="manifest" href="<?= base_url('manifest.json') ?>">
     <meta name="theme-color" content="#2f5fe8">
     <meta name="mobile-web-app-capable" content="yes">
@@ -22,13 +27,13 @@
     <meta property="og:url" content="<?= base_url() ?>">
     <meta property="og:title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
     <meta property="og:description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
-    <meta property="og:image" content="<?= base_url('PASTI - Icon.png') ?>">
+    <meta property="og:image" content="<?= esc($logoUrl) ?>">
 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="<?= base_url() ?>">
     <meta property="twitter:title" content="<?= esc($settings['teks_hero_judul']) ?> - <?= esc($settings['nama_web']) ?>">
     <meta property="twitter:description" content="<?= esc($settings['teks_hero_deskripsi']) ?>">
-    <meta property="twitter:image" content="<?= base_url('PASTI - Icon.png') ?>">
+    <meta property="twitter:image" content="<?= esc($logoUrl) ?>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1607,7 +1612,7 @@
             </div>
 
             <a href="#hero" class="logo" aria-label="<?= esc($settings['nama_web']) ?>">
-                <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
+                <img src="<?= esc($logoUrl) ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
                 <span><?= esc($settings['nama_web']) ?></span>
             </a>
 
@@ -1659,7 +1664,7 @@
 
                 <div class="hero__layer--cut" id="hero-cut">
                     <div class="hero__emblem">
-                        <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Emblem <?= esc($settings['nama_web']) ?>">
+                        <img src="<?= esc($logoUrl) ?>" alt="Emblem <?= esc($settings['nama_web']) ?>">
                     </div>
                 </div>
 
@@ -1944,7 +1949,7 @@
                 </div>
 
                 <a href="#hero" class="logo" aria-label="Kembali ke atas">
-                    <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
+                    <img src="<?= esc($logoUrl) ?>" alt="Logo <?= esc($settings['nama_web']) ?>">
                     <span><?= esc($settings['nama_web']) ?></span>
                 </a>
 

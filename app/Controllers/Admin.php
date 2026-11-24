@@ -197,10 +197,12 @@ class Admin extends BaseController
         }
 
         $data = [
-            'title'    => 'Pengaturan Web - Studio PASTI',
-            'settings' => $settings,
-            'security' => SecurityConfig::get(),
-            'admins'   => (new AdminUserModel())->orderBy('id', 'ASC')->findAll(),
+            'title'         => 'Pengaturan Web - Studio PASTI',
+            'settings'      => $settings,
+            'logoUrl'       => WebSettingModel::getLogoUrl($settings),
+            'hasCustomLogo' => WebSettingModel::hasCustomLogo($settings),
+            'security'      => SecurityConfig::get(),
+            'admins'        => (new AdminUserModel())->orderBy('id', 'ASC')->findAll(),
         ];
         return view('admin/settings/index', $data);
     }
@@ -209,17 +211,110 @@ class Admin extends BaseController
     {
         $this->checkAuth();
         $settingModel = new WebSettingModel();
-        $id = $this->request->getPost('id');
+        $id           = $this->request->getPost('id');
+        $current      = $id ? $settingModel->find($id) : $settingModel->first();
 
-        $settingModel->update($id, [
+        if (!$current) {
+            return redirect()->to('/admin/settings')->with('error', 'Data pengaturan website tidak ditemukan.');
+        }
+
+        $updateData = [
             'nama_web'            => $this->request->getPost('nama_web'),
             'nomor_wa'            => $this->request->getPost('nomor_wa'),
             'teks_hero_judul'     => $this->request->getPost('teks_hero_judul'),
             'teks_hero_deskripsi' => $this->request->getPost('teks_hero_deskripsi'),
-            'teks_footer'         => $this->request->getPost('teks_footer')
-        ]);
+            'teks_footer'         => $this->request->getPost('teks_footer'),
+        ];
 
-        return redirect()->to('/admin/settings')->with('success', 'Konfigurasi website berhasil diperbarui.');
+        $logoUpdated = false;
+        $fileLogo    = $this->request->getFile('logo');
+
+        if ($fileLogo !== null && $fileLogo->getError() !== UPLOAD_ERR_NO_FILE) {
+            if (!$fileLogo->isValid() || $fileLogo->hasMoved()) {
+                $errCode = $fileLogo->getError();
+                if ($errCode === UPLOAD_ERR_INI_SIZE || $errCode === UPLOAD_ERR_FORM_SIZE) {
+                    return redirect()->to('/admin/settings')->with('error', 'Ukuran file logo melebihi batas maksimum yang diizinkan (maks. 2MB).');
+                }
+
+                return redirect()->to('/admin/settings')->with('error', 'Gagal mengunggah file logo. Silakan coba lagi.');
+            }
+
+            if ($fileLogo->getSizeByUnit('kb') > 2048) {
+                return redirect()->to('/admin/settings')->with('error', 'Ukuran file logo maksimal 2MB.');
+            }
+
+            $allowedMimes = ['image/png', 'image/jpeg', 'image/webp'];
+            $allowedExts  = ['png', 'jpg', 'jpeg', 'webp'];
+            $mime         = strtolower((string) $fileLogo->getMimeType());
+            $ext          = strtolower((string) $fileLogo->guessExtension());
+            $tempPath     = $fileLogo->getTempName();
+
+            if (!in_array($mime, $allowedMimes, true) || !in_array($ext, $allowedExts, true) || $tempPath === '' || @getimagesize($tempPath) === false) {
+                return redirect()->to('/admin/settings')->with('error', 'Format logo tidak didukung. Gunakan file gambar PNG, JPG, atau WebP yang valid.');
+            }
+
+            if (!WebSettingModel::ensureLogoColumn()) {
+                return redirect()->to('/admin/settings')->with('error', 'Kolom logo belum tersedia di database. Jalankan migrasi database terlebih dahulu.');
+            }
+
+            $uploadDir = WebSettingModel::getLogoUploadDir();
+            if (!is_dir($uploadDir) && !@mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                return redirect()->to('/admin/settings')->with('error', 'Gagal menyiapkan direktori penyimpanan logo.');
+            }
+
+            $indexFile = $uploadDir . DIRECTORY_SEPARATOR . 'index.html';
+            if (!is_file($indexFile)) {
+                @file_put_contents($indexFile, '');
+            }
+
+            $newLogoName = $fileLogo->getRandomName();
+            $fileLogo->move($uploadDir, $newLogoName);
+
+            $oldLogo = trim((string) ($current['logo'] ?? ''));
+            if ($oldLogo !== '') {
+                $oldPath = $uploadDir . DIRECTORY_SEPARATOR . basename($oldLogo);
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $updateData['logo'] = $newLogoName;
+            $logoUpdated        = true;
+        }
+
+        $settingModel->update($current['id'], $updateData);
+        WebSettingModel::clearCache();
+
+        return redirect()->to('/admin/settings')->with(
+            'success',
+            $logoUpdated
+                ? 'Konfigurasi website dan logo berhasil diperbarui.'
+                : 'Konfigurasi website berhasil diperbarui.'
+        );
+    }
+
+    public function settingsLogoReset()
+    {
+        $this->checkAuth();
+        $settingModel = new WebSettingModel();
+        $current      = $settingModel->first();
+
+        if ($current && !empty($current['logo'])) {
+            $oldPath = WebSettingModel::getLogoUploadDir() . DIRECTORY_SEPARATOR . basename((string) $current['logo']);
+            if (is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+
+            if (WebSettingModel::ensureLogoColumn()) {
+                $settingModel->update($current['id'], ['logo' => null]);
+            }
+
+            WebSettingModel::clearCache();
+
+            return redirect()->to('/admin/settings')->with('success', 'Logo website berhasil dikembalikan ke logo default.');
+        }
+
+        return redirect()->to('/admin/settings')->with('success', 'Logo website sudah menggunakan logo default.');
     }
 
     public function securityUpdate()

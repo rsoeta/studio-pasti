@@ -21,6 +21,7 @@ $routes->get('admin/portfolio/toggle/(:num)', 'Admin::portfolioToggle/$1');
 $routes->get('admin/portfolio/delete/(:num)', 'Admin::portfolioDelete/$1');
 $routes->get('admin/settings', 'Admin::settingsIndex');
 $routes->post('admin/settings/update', 'Admin::settingsUpdate');
+$routes->post('admin/settings/logo/reset', 'Admin::settingsLogoReset');
 $routes->post('admin/settings/security', 'Admin::securityUpdate');
 $routes->post('admin/settings/whitelist/store', 'Admin::whitelistStore');
 $routes->get('admin/settings/whitelist/delete/(:num)', 'Admin::whitelistDelete/$1');

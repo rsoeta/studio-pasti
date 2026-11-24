@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\SecurityConfig;
 use App\Models\AdminUserModel;
+use App\Models\WebSettingModel;
 use Config\Services;
 
 class Auth extends BaseController
@@ -17,6 +18,7 @@ class Auth extends BaseController
 
         return view('admin/login', [
             'security' => SecurityConfig::get(),
+            'settings' => WebSettingModel::getCached(),
         ]);
     }
 

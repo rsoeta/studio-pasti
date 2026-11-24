@@ -1,3 +1,10 @@
+<?php
+$layoutSettings  = \App\Models\WebSettingModel::getCached($settings ?? null);
+$layoutLogoUrl   = \App\Models\WebSettingModel::getLogoUrl($layoutSettings);
+$layoutLogoMime  = \App\Models\WebSettingModel::getLogoMime($layoutSettings);
+$layoutTouchIcon = \App\Models\WebSettingModel::getAppleTouchIconUrl($layoutSettings);
+$layoutBrandName = (string) ($layoutSettings['nama_web'] ?? 'Studio PASTI');
+?>
 <!DOCTYPE html>
 <html lang="id">
 
@@ -6,14 +13,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'Panel Admin - Studio PASTI') ?></title>
 
-    <link rel="icon" type="image/png" href="<?= base_url('PASTI - Icon.png') ?>">
-    <link rel="apple-touch-icon" href="<?= base_url('icons/icon-192x192.png') ?>">
+    <link rel="icon" type="<?= esc($layoutLogoMime) ?>" href="<?= esc($layoutLogoUrl) ?>">
+    <link rel="apple-touch-icon" href="<?= esc($layoutTouchIcon) ?>">
     <link rel="manifest" href="<?= base_url('manifest.json') ?>">
     <meta name="theme-color" content="#24425f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Studio PASTI">
+    <meta name="apple-mobile-web-app-title" content="<?= esc($layoutBrandName) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
@@ -1061,7 +1068,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--g-line);">
                 <div class="brand">
                     <div class="brand__badge">
-                        <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Logo PASTI">
+                        <img src="<?= esc($layoutLogoUrl) ?>" alt="Logo <?= esc($layoutBrandName) ?>">
                     </div>
                     <div class="brand__text">
                         <span class="brand__name">PASTI</span>
@@ -1121,7 +1128,7 @@
                     </button>
                     <a href="<?= base_url('admin/dashboard') ?>" class="brand">
                         <div class="brand__badge">
-                            <img src="<?= base_url('PASTI - Icon.png') ?>" alt="Logo PASTI">
+                            <img src="<?= esc($layoutLogoUrl) ?>" alt="Logo <?= esc($layoutBrandName) ?>">
                         </div>
                         <div class="brand__text">
                             <span class="brand__name">PASTI</span>
