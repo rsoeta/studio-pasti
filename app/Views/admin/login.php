@@ -25,11 +25,11 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js" integrity="sha384-YB/DdIkloKoRpclWB8bNcYXWakt57USgtQPDzvnIDHYU0lasD5eWlXVo1S4ODukY" crossorigin="anonymous"></script>
     <?php $security = $security ?? []; ?>
     <?php if (!empty($security['turnstile_site_key']) && !empty($security['turnstile_secret_key'])) : ?>
-        <script>
+        <script nonce="<?= esc(\App\Filters\SecurityHeaders::getNonce()) ?>">
             window.onTurnstileError = function (code) {
                 var hint = document.getElementById('turnstile-error-hint');
                 if (hint) {
@@ -42,7 +42,7 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <?php endif; ?>
 
-    <script>
+    <script nonce="<?= esc(\App\Filters\SecurityHeaders::getNonce()) ?>">
         (function () {
             try {
                 const saved = localStorage.getItem('orvex_admin_theme');
@@ -587,7 +587,7 @@ $loginBrandName = (string) ($loginSettings['nama_web'] ?? 'Studio PASTI');
         </main>
     </div>
 
-    <script>
+    <script nonce="<?= esc(\App\Filters\SecurityHeaders::getNonce()) ?>">
         (function () {
             const btn = document.getElementById('login-theme-btn');
             const icon = document.getElementById('login-theme-icon');

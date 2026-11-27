@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\SecurityHeaders;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -32,8 +33,9 @@ class Filters extends BaseFilters
         'secureheaders' => SecureHeaders::class,
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
-        'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+        'pagecache'       => PageCache::class,
+        'performance'     => PerformanceMetrics::class,
+        'securityheaders' => SecurityHeaders::class,
     ];
 
     /**
@@ -72,11 +74,13 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
+            'securityheaders',
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
+            'securityheaders',
             // 'honeypot',
             // 'secureheaders',
         ],

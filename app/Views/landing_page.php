@@ -39,8 +39,8 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js" integrity="sha384-YB/DdIkloKoRpclWB8bNcYXWakt57USgtQPDzvnIDHYU0lasD5eWlXVo1S4ODukY" crossorigin="anonymous"></script>
 
     <style>
         :root {
@@ -1876,7 +1876,7 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                                     <?= $app['deskripsi'] ?>
                                 </div>
 
-                                <button type="button" onclick="toggleDeskripsi('<?= $app['id'] ?>')" id="btn-desc-<?= $app['id'] ?>" class="btn-expand">
+                                <button type="button" data-toggle-desc="<?= (int) $app['id'] ?>" id="btn-desc-<?= (int) $app['id'] ?>" class="btn-expand">
                                     Selengkapnya <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
                                 </button>
                             </div>
@@ -1887,7 +1887,10 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                                 </a>
                                 <button
                                     type="button"
-                                    onclick="launchDemo('<?= esc($app['judul'], 'js') ?>', '<?= esc($app['status_demo'], 'js') ?>', '<?= esc($app['link_demo'], 'js') ?>', this)"
+                                    data-launch-demo="1"
+                                    data-app-judul="<?= esc($app['judul']) ?>"
+                                    data-app-status="<?= esc($app['status_demo']) ?>"
+                                    data-app-url="<?= esc($app['link_demo']) ?>"
                                     class="card-btn card-btn--demo">
                                     <i class="fa-solid fa-laptop-code"></i> Uji Demo &rarr;
                                 </button>
@@ -2018,11 +2021,11 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <!-- GSAP + ScrollTrigger & Lenis Smooth Scroll -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js" integrity="sha384-pEQB1h4Zmn9xhS6jotzltHSIQq6N0Oh3BXkCNOH5LKI81R2NRbb9efarAJYw9gTY" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js" integrity="sha384-TgZ1GoXcDnrw/czNfaiSZSFV1zgIRv8aQOevBA8ppS4SkNONmzYfjARpXsDfdnUE" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" integrity="sha384-tKsJDT6PlUI0pSBt9/sBKJluKgA19/a6mBrDsZaXotLB4ZYfMGM6xt6/WgGpYhTm" crossorigin="anonymous"></script>
 
-    <script>
+    <script nonce="<?= esc(\App\Filters\SecurityHeaders::getNonce()) ?>">
         (function () {
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const nav = document.getElementById('site-nav');
@@ -2548,6 +2551,23 @@ $touchIconUrl = \App\Models\WebSettingModel::getAppleTouchIconUrl($settings ?? n
                 });
             });
         }
+
+        document.querySelectorAll('[data-toggle-desc]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                toggleDeskripsi(btn.dataset.toggleDesc);
+            });
+        });
+
+        document.querySelectorAll('[data-launch-demo]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                launchDemo(
+                    btn.dataset.appJudul || '',
+                    btn.dataset.appStatus || '',
+                    btn.dataset.appUrl || '#',
+                    btn
+                );
+            });
+        });
 
         (function () {
             const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -193,8 +193,8 @@
     </form>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-<script>
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js" integrity="sha384-iRqAtUS5zaxUb29RlrazJxjB/+B6yhysd3tFSeMTcmvAgxeXTVWBk4OlbSJWpthT" crossorigin="anonymous"></script>
+<script nonce="<?= esc(\App\Filters\SecurityHeaders::getNonce()) ?>">
     ClassicEditor
         .create(document.querySelector('#editor'), {
             toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo']
